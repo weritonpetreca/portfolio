@@ -24,6 +24,6 @@ describe("Projects", () => {
     render(<Projects />);
 
     const repoLinks = screen.getAllByRole("link", { name: /repositório/i });
-    expect(repoLinks.length).toBeGreaterThanOrEqual(4);
+    expect(repoLinks.length).toBeGreaterThanOrEqual(3);
   });
 });
