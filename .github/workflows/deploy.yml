@@ -1,17 +1,34 @@
-name: Deploy Portfolio to AWS S3
+name: Deploy Portfolio to AWS S3 & CloudFront
 
 on:
   push:
     branches:
-      - "main"
+      - main
+      - refactor/nova-arquitetura
+  workflow_dispatch: {}
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Set up Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Vitest Unit Tests
+        run: npm run test -- --run
+
+      - name: Build Production Bundle (Vite)
+        run: npm run build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -20,34 +37,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # Arquivos estáticos (imagens, fontes, CSS, JS) — cache longo de 1 ano.
-      # O browser só baixa novamente se o nome/hash do arquivo mudar.
-      # Isso reduz latência nas visitas subsequentes e melhora os Core Web Vitals.
-      - name: Deploy Static Assets (cache longo)
+      # 1. Arquivos Estáticos Compilados (CSS, JS, Imagens em dist/assets) - Cache Longo (1 ano)
+      - name: Deploy Static Assets (dist/ - cache longo)
         run: |
-          aws s3 sync . s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
+          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
             --delete \
-            --exclude ".git/*" \
-            --exclude ".github/*" \
-            --exclude ".gitignore" \
-            --exclude "README.md" \
-            --exclude "*.html" \
+            --exclude "index.html" \
             --exclude "robots.txt" \
             --exclude "sitemap.xml" \
             --cache-control "max-age=31536000, immutable"
 
-      # HTML, robots.txt e sitemap.xml — sempre revalidados.
-      # max-age=0 + must-revalidate garante que o recrutador nunca veja
-      # uma versão antiga do portfólio após um deploy.
-      - name: Deploy HTML e arquivos de descoberta (sem cache)
+      # 2. HTML e Arquivos de Descoberta (index.html, robots.txt, sitemap.xml) - Sem Cache
+      - name: Deploy Entry Files (dist/ -sem cache)
         run: |
-          for file in index.html robots.txt sitemap.xml; do
-            if [ -f "$file" ]; then
-              aws s3 cp "$file" s3://${{ secrets.AWS_S3_BUCKET_NAME }}/"$file" \
-                --cache-control "max-age=0, no-cache, must-revalidate"
-            fi
-          done
+          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
+            --exclude "*" \
+            --include "index.html" \
+            --include "robots.txt" \
+            --include "sitemap.xml" \
+            --cache-control "max-age=0, no-cache, no-store, must-revalidate"
 
+      # 3. Invalidação do CloudFront para propagação imediata no domínio      
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \
