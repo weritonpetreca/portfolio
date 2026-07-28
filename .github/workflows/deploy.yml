@@ -64,6 +64,27 @@ jobs:
           ARTIFACT_BUCKET=$(aws ssm get-parameter --name "/portfolio/bootstrap/sam_artifact_bucket" --query "Parameter.Value" --output text)
           echo "SAM_ARTIFACT_BUCKET=$ARTIFACT_BUCKET" >> $GITHUB_ENV
 
+      - name: Clean up failed initial stack (ROLLBACK_COMPLETE)
+        run: |
+          STACK_NAME="portfolio-backend-contact"
+          
+          # Consulta o status atual da stack no CloudFormation
+          STACK_STATUS=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --region us-east-1 \
+            --query "Stacks[0].StackStatus" \
+            --output text 2>/dev/null || echo "STACK_NOT_FOUND")
+
+          echo "Status atual da stack: $STACK_STATUS"
+
+          # Se estiver presa em ROLLBACK_COMPLETE, deleta e aguarda finalizar
+          if [ "$STACK_STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "Stack em estado irrecuperável (ROLLBACK_COMPLETE). Iniciando limpeza automática..."
+            aws cloudformation delete-stack --stack-name "$STACK_NAME" --region us-east-1
+            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME" --region us-east-1
+            echo "Stack deletada com sucesso. Prosseguindo com o novo deploy..."
+          fi
+
       - name: Build & Deploy Backend (AWS SAM)
         run: |
           cd backend-contact
