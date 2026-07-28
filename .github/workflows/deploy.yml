@@ -100,7 +100,8 @@ jobs:
           sam deploy \
             --config-file samconfig.toml \
             --s3-bucket ${{ env.SAM_ARTIFACT_BUCKET }} \
-            --parameter-overrides VerifiedEmailSender="${{ secrets.VERIFIED_EMAIL_SENDER }}"
+            --parameter-overrides VerifiedEmailSender="${{ secrets.VERIFIED_EMAIL_SENDER }}" \
+            --no-fail-on-empty-changeset
 
   # =================================================================
   # JOB 3: Frontend Web (React + Vite + S3 + CloudFront)
