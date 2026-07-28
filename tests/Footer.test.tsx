@@ -3,29 +3,50 @@ import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 import { Footer } from "../src/components/layout/Footer.tsx";
 
-/**
- * Footer usa <Link> do react-router, que precisa de um Router por perto
- * para funcionar — por isso o <MemoryRouter> envolvendo o componente aqui.
- * Em produção quem cumpre esse papel é o <BrowserRouter> lá no App.tsx.
- *
- * Repare que as consultas (getByRole) buscam pelo que um USUÁRIO enxerga
- * (o texto do link, o papel de acessibilidade) — não por detalhes de
- * implementação como nome de classe CSS. É a mesma filosofia de testar
- * comportamento, não implementação, que você já aplica com Mockito.
- */
 describe("Footer", () => {
-  it("renderiza um link de e-mail com assunto pré-preenchido", () => {
+  it("renderiza os links das redes sociais e profissionais com URLs corretas", () => {
     render(
       <MemoryRouter>
         <Footer />
       </MemoryRouter>,
     );
 
-    const emailLink = screen.getByRole("link", { name: "E-mail" });
-    expect(emailLink).toHaveAttribute(
+    const linkedinLink = screen.getByRole("link", { name: "LinkedIn" });
+    expect(linkedinLink).toHaveAttribute(
       "href",
-      expect.stringContaining("subject=Oportunidade"),
+      "https://linkedin.com/in/weriton-petreca",
     );
+
+    const githubLink = screen.getByRole("link", { name: "GitHub" });
+    expect(githubLink).toHaveAttribute(
+      "href",
+      "https://github.com/weritonpetreca",
+    );
+
+    const credlyLink = screen.getByRole("link", { name: "Credly" });
+    expect(credlyLink).toHaveAttribute(
+      "href",
+      "https://www.credly.com/users/weriton-luis-petreca",
+    );
+
+    const whatsappLink = screen.getByRole("link", { name: "WhatsApp" });
+    expect(whatsappLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("wa.me/5535997231989"),
+    );
+  });
+
+  it("renderiza o copyright com o ano atual e o nome", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
+
+    const currentYear = new Date().getFullYear();
+    expect(
+      screen.getByText(new RegExp(`© ${currentYear} Weriton Petreca`)),
+    ).toBeInTheDocument();
   });
 
   it("linka para o portal da Witcher Realm", () => {

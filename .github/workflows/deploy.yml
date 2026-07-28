@@ -50,6 +50,14 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Run Backend Unit Tests (Pytest)
+        run: |
+          cd backend-contact
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest pytest-mock
+          pytest
+
       - name: Install AWS SAM CLI
         uses: aws-actions/setup-sam@v2
 
