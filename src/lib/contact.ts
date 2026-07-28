@@ -1,5 +1,3 @@
-import emailjs from "@emailjs/browser";
-
 export interface ContactPayload {
   name: string;
   email: string;
@@ -11,39 +9,49 @@ export interface SendResult {
   error?: string;
 }
 
-const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+const API_URL = import.meta.env.VITE_CONTACT_API_URL;
 
 /**
- * ContactForm.tsx só conhece esta função — nunca o EmailJS diretamente.
- * É o mesmo motivo pelo qual você programa contra uma interface em Java
- * em vez de uma implementação concreta (o mesmo raciocínio por trás de
- * preferir injeção via construtor): se um dia trocarmos EmailJS por um
- * Lambda + SES próprio (seção 9.6 do SRS), só este arquivo muda — o
- * formulário e sua validação continuam exatamente iguais.
+ * Envia a mensagem de contato para o backend Serverless (API Gateway + Lambda + SES).
+ * O ContactForm.tsx continua consumindo este contrato sem saber quem é o provider final.
  */
-export async function sendContactMessage(payload: ContactPayload): Promise<SendResult> {
-  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+export async function sendContactMessage(
+  payload: ContactPayload,
+): Promise<SendResult> {
+  if (!API_URL) {
     return {
       ok: false,
       error:
-        "Formulário ainda não configurado — faltam as chaves do EmailJS (ver .env.example).",
+        "URL da API de contato não configurada no ambiente (VITE_CONTACT_API_URL).",
     };
   }
 
   try {
-    await emailjs.send(
-      SERVICE_ID,
-      TEMPLATE_ID,
-      { ...payload },
-      { publicKey: PUBLIC_KEY },
-    );
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error:
+          data.message ||
+          "Erro ao enviar mensagem. Tente novamente mais tarde.",
+      };
+    }
+
     return { ok: true };
   } catch {
     return {
       ok: false,
-      error: "Não foi possível enviar agora. Tente novamente ou use o e-mail direto abaixo.",
+      error:
+        "Falha de rede ao tentar enviar a mensagem. Verifique sua conexão.",
     };
   }
 }
