@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 
 # Configuração de Logs Estruturados
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 ses_client = boto3.client('ses', region_name='us-east-1')
 VERIFIED_EMAIL_SENDER = os.environ.get('VERIFIED_EMAIL_SENDER', '')
