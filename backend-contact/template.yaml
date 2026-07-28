@@ -64,7 +64,7 @@ Resources:
               Action:
                 - ses:SendEmail
                 - ses:SendRawEmail
-              Resource: !GetAtt ContactEmailIdentity.Arn
+              Resource: !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${ContactEmailIdentity}"
 
       Events:
         ApiEvent:
