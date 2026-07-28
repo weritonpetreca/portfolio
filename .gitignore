@@ -1,11 +1,30 @@
 # ==========================================
-# Dependencies (Gerado via `npm install` no CI)
+# AWS SAM CLI & Infrastructure (Crucial!)
+# ==========================================
+.aws-sam/
+
+# ==========================================
+# Python & Virtual Environments
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Dependencies (Node.js & Frontend)
 # ==========================================
 node_modules/
 .pnpm-store/
 
 # ==========================================
-# Build Outputs (Gerado via `npm run build` no CI)
+# Build Outputs (Vite / React)
 # ==========================================
 dist/
 dist-ssr/

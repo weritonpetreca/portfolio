@@ -5,20 +5,27 @@ export function Contact() {
   return (
     <>
       <Divider />
-      <section id="contato" className="px-6 py-16">
+      <section id="contact" className="texture-forged px-6 py-16">
         <div className="mx-auto max-w-3xl">
-          <p className="font-mono text-xs tracking-widest text-ember">ENVIAR UMA MENSAGEM</p>
-          <h2 className="mt-2 font-display text-2xl font-semibold text-bone sm:text-3xl">
-            Vamos conversar
-          </h2>
-          <p className="mt-3 max-w-xl text-steel">
-            Prefere preencher aqui mesmo? O formulário abaixo chega direto na minha
-            caixa de entrada.
-          </p>
+          
+          {/* Cabeçalho da Seção */}
+          <div className="flex flex-col gap-1">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-ember">
+              ✉️ TRANSMISSÃO DIRETA
+            </p>
+            <h2 className="font-display text-2xl font-semibold text-bone sm:text-3xl">
+              Vamos Conversar
+            </h2>
+            <p className="mt-1 text-sm text-steel">
+              Tem uma oportunidade, proposta de projeto ou dúvida técnica? Envie uma mensagem diretamente para minha caixa de entrada.
+            </p>
+          </div>
 
-          <div className="mt-8">
+          {/* Card do Formulário */}
+          <div className="hover-lift mt-8 rounded-sm border border-forge-700 bg-forge-900/60 p-6 shadow-xl">
             <ContactForm />
           </div>
+
         </div>
       </section>
     </>

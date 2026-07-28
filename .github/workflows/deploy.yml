@@ -1,4 +1,4 @@
-name: Deploy Portfolio to AWS S3 & CloudFront
+name: Deploy Portfolio Fullstack to AWS
 
 on:
   push:
@@ -8,23 +8,97 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  id-token: write
+  id-token: write # Necessário para autenticação OIDC (Zero Chaves Fixas)
   contents: read
 
-
 jobs:
-  build-and-deploy:
+  # =================================================================
+  # JOB 1: Fundação / Bootstrap (Bucket de Artefatos + SSM Base)
+  # =================================================================
+  deploy-bootstrap:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Deploy Bootstrap Stack (CloudFormation)
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/bootstrap/template.yaml \
+            --stack-name portfolio-bootstrap \
+            --no-fail-on-empty-changeset \
+            --region us-east-1
+
+  # =================================================================
+  # JOB 2: Backend Serverless (AWS SAM + Lambda Python ARM64 + SES)
+  # =================================================================
+  deploy-backend:
+    needs: deploy-bootstrap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.12 Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Fetch SAM Artifact Bucket Name from SSM
+        run: |
+          ARTIFACT_BUCKET=$(aws ssm get-parameter --name "/portfolio/bootstrap/sam_artifact_bucket" --query "Parameter.Value" --output text)
+          echo "SAM_ARTIFACT_BUCKET=$ARTIFACT_BUCKET" >> $GITHUB_ENV
+
+      - name: Build & Deploy Backend (AWS SAM)
+        run: |
+          cd backend-contact
+          sam build
+          sam deploy \
+            --config-file samconfig.toml \
+            --s3-bucket ${{ env.SAM_ARTIFACT_BUCKET }} \
+            --parameter-overrides VerifiedEmailSender="${{ secrets.VERIFIED_EMAIL_SENDER }}"
+
+  # =================================================================
+  # JOB 3: Frontend Web (React + Vite + S3 + CloudFront)
+  # =================================================================
+  deploy-frontend:
+    needs: deploy-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
 
       - name: Set up Node.js Environment
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: 'npm'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Fetch Contact API URL from SSM Parameter Store
+        run: |
+          API_URL=$(aws ssm get-parameter --name "/portfolio/contact/api_url" --query "Parameter.Value" --output text)
+          echo "VITE_CONTACT_API_URL=$API_URL" >> $GITHUB_ENV
 
       - name: Install Dependencies
         run: npm ci
@@ -34,12 +108,6 @@ jobs:
 
       - name: Build Production Bundle (Vite)
         run: npm run build
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
 
       # 1. Arquivos Estáticos Compilados (CSS, JS, Imagens em dist/assets) - Cache Longo (1 ano)
       - name: Deploy Static Assets (dist/ - cache longo)
@@ -52,7 +120,7 @@ jobs:
             --cache-control "max-age=31536000, immutable"
 
       # 2. HTML e Arquivos de Descoberta (index.html, robots.txt, sitemap.xml) - Sem Cache
-      - name: Deploy Entry Files (dist/ -sem cache)
+      - name: Deploy Entry Files (dist/ - sem cache)
         run: |
           aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
             --exclude "*" \
@@ -61,7 +129,7 @@ jobs:
             --include "sitemap.xml" \
             --cache-control "max-age=0, no-cache, no-store, must-revalidate"
 
-      # 3. Invalidação do CloudFront para propagação imediata no domínio      
+      # 3. Invalidação do CloudFront para propagação imediata no domínio
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \

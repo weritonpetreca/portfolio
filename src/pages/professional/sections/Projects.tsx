@@ -5,59 +5,111 @@ export function Projects() {
   return (
     <>
       <Divider />
-      <section id="projetos" className="px-6 py-16">
+      <section id="projetos" className="texture-forged px-6 py-16">
         <div className="mx-auto max-w-3xl">
-          <p className="font-mono text-xs tracking-widest text-ember">CONTRATOS CONCLUÍDOS</p>
-          <h2 className="mt-2 font-display text-2xl font-semibold text-bone sm:text-3xl">
-            Projetos em Destaque
-          </h2>
+          
+          {/* Cabeçalho da Seção */}
+          <div className="flex flex-col gap-1">
+            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-ember">
+              📜 CONTRATOS & ARQUITETURAS
+            </p>
+            <h2 className="font-display text-2xl font-semibold text-bone sm:text-3xl">
+              Projetos em Destaque
+            </h2>
+            <p className="mt-1 text-sm text-steel">
+              Sistemas reais forjados com foco em resiliência, microsserviços e nuvem AWS.
+            </p>
+          </div>
 
-          <div className="mt-8 flex flex-col gap-6">
+          {/* Lista de Projetos */}
+          <div className="mt-8 flex flex-col gap-8">
             {projects.map((project) => (
               <article
                 key={project.id}
-                className={`border p-6 ${
+                className={`hover-lift relative rounded-sm border p-6 shadow-lg transition-all ${
                   project.featured
-                    ? "border-ember/60 bg-forge-900"
+                    ? "border-ember/70 bg-forge-900/90 shadow-ember/10"
                     : "border-forge-700 bg-forge-900/40"
                 }`}
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="font-display text-xl text-bone">{project.title}</h3>
+                {/* Badge Especial para Projeto Destaque / Campeão */}
+                {project.featured && (
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-xs border border-ember/60 bg-ember/10 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-ember">
+                    <span>🏆 1º LUGAR HACK2HIRE 2026 · CONTRATO LENDÁRIO</span>
+                  </div>
+                )}
+
+                {/* Cabeçalho do Card (Título + Link do Repositório) */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-forge-700/50 pb-3">
+                  <h3 className="font-display text-xl font-bold text-bone">
+                    {project.title}
+                  </h3>
                   <a
                     href={project.repoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-mono text-xs text-steel hover:text-ember"
+                    className="inline-flex items-center gap-1.5 rounded-sm border border-forge-700 bg-forge-950/80 px-3 py-1 font-mono text-xs text-steel transition-colors hover:border-ember hover:text-ember"
                   >
-                    repositório ↗
+                    <span>repositório</span>
+                    <span className="text-ember">↗</span>
                   </a>
                 </div>
 
-                <p className="mt-3 text-steel">{project.mission}</p>
-                <p className="mt-2 text-sm text-steel/80">{project.strategy}</p>
+                {/* Bloco de Missão e Estratégia */}
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-ember">
+                      🎯 Missão
+                    </span>
+                    <p className="mt-1 text-sm leading-relaxed text-bone">
+                      {project.mission}
+                    </p>
+                  </div>
 
+                  <div>
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-steel">
+                      ⚔️ Estratégia & Arquitetura
+                    </span>
+                    <p className="mt-1 text-sm leading-relaxed text-steel">
+                      {project.strategy}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Destaques de Engenharia (Highlights) */}
                 {project.highlights.length > 0 && (
-                  <ul className="mt-4 space-y-1 text-sm text-bone">
-                    {project.highlights.map((highlight) => (
-                      <li key={highlight}>{highlight}</li>
-                    ))}
-                  </ul>
+                  <div className="mt-5 border-t border-forge-700/30 pt-4">
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-steel">
+                      🛡️ Destaques de Engenharia
+                    </span>
+                    <ul className="mt-2 space-y-2 text-xs leading-relaxed text-bone/90">
+                      {project.highlights.map((highlight) => (
+                        <li key={highlight} className="flex items-start gap-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rotate-45 bg-ember" />
+                          <span>{highlight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
 
-                <ul className="mt-4 flex flex-wrap gap-2">
-                  {project.techTags.map((tag) => (
-                    <li
-                      key={tag}
-                      className="rounded-sm border border-forge-700 px-2 py-0.5 font-mono text-xs text-steel"
-                    >
-                      {tag}
-                    </li>
-                  ))}
-                </ul>
+                {/* Tech Stack (Tags) */}
+                <div className="mt-6 border-t border-forge-700/30 pt-4">
+                  <ul className="flex flex-wrap gap-2">
+                    {project.techTags.map((tag) => (
+                      <li
+                        key={tag}
+                        className="rounded-sm border border-forge-700/80 bg-forge-950/80 px-2.5 py-1 font-mono text-[11px] text-steel transition-colors hover:border-ember/60 hover:text-bone"
+                      >
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </article>
             ))}
           </div>
+
         </div>
       </section>
     </>
