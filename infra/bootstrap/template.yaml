@@ -32,12 +32,14 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
 
-      # FinOps: Limpeza automática de builds antigos após 14 dias (Custo = R$ 0,00)
+      # FinOps: Limpeza automática de builds antigos após 7 dias (Custo = R$ 0,00)
       LifecycleConfiguration:
         Rules:
           - Id: DeleteOldBuildArtifacts
             Status: Enabled
-            ExpirationInDays: 14
+            ExpirationInDays: 7
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 1
 
       # Tagging de Recursos
       Tags:
