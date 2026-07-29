@@ -25,7 +25,7 @@ export function Seo({
   
   // Trata dinamicamente qualquer favicon passado por parâmetro (ex: /witcher-favicon.ico)
   const activeFavicon = `${favicon}${CACHE_VERSION}`;
-  const defaultImage = `${baseUrl}/og-image.png`;
+  const defaultImage = `${baseUrl}/og-image.jpg`;
   const finalImage = image ?? defaultImage;
 
   const personSchema = {
