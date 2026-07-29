@@ -41,41 +41,46 @@ export function SoftSkills() {
   return (
     <>
       <Divider />
-      <section id="competencias" className="texture-forged px-6 py-16">
-        <div className="mx-auto max-w-3xl">
+      <section id="competencias" className="texture-forged px-6 py-20">
+        <div className="mx-auto max-w-4xl">
           
           {/* Cabeçalho da Seção */}
-          <div className="flex flex-col gap-1">
-            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-ember">
-              🛡️ TRAÇOS PROVADOS EM COMBATE
+          <div className="flex flex-col gap-2">
+            <p className="font-mono text-sm font-bold uppercase tracking-widest text-ember flex items-center gap-2">
+              <span>🛡️</span> TRAÇOS PROVADOS EM COMBATE
             </p>
-            <h2 className="font-display text-2xl font-semibold text-bone sm:text-3xl">
+            <h2 className="font-display text-3xl font-bold text-bone sm:text-4xl">
               Competências Comportamentais
             </h2>
-            <p className="mt-1 text-sm text-steel">
-              Habilidades interpessoais e atitudes validadas por fatos concretos e resultados operacionais.
+            <p className="mt-1 text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+              Habilidades interpessoais e atitudes validadas por fatos concretos, histórico de resiliência e entregas reais.
             </p>
           </div>
 
           {/* Grid de Cards de Competências */}
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+          <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {evidence.map((item) => (
               <div
                 key={item.trait}
-                className="hover-lift rounded-sm border border-forge-700 border-l-2 border-l-ember bg-forge-900/60 p-5 shadow-md"
+                className="group rounded-lg border border-forge-700/80 border-l-4 border-l-ember bg-forge-900/80 p-5 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:border-l-amber-400 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
               >
                 {/* Título do Traço */}
-                <div className="flex items-center gap-2 border-b border-forge-700/40 pb-2.5">
-                  <span className="text-base" aria-hidden="true">
-                    {item.icon}
+                <div className="flex items-center justify-between border-b border-forge-700/60 pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl sm:text-2xl transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
+                      {item.icon}
+                    </span>
+                    <h3 className="font-mono text-sm sm:text-base font-bold text-bone">
+                      {item.trait}
+                    </h3>
+                  </div>
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-amber-500/90 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/30">
+                    Fato Comprovado
                   </span>
-                  <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-bone">
-                    {item.trait}
-                  </h3>
                 </div>
 
                 {/* Fato / História Probatória */}
-                <p className="mt-3 font-sans text-xs leading-relaxed text-steel">
+                <p className="mt-4 font-sans text-sm sm:text-base leading-relaxed text-slate-300">
                   {item.story}
                 </p>
               </div>

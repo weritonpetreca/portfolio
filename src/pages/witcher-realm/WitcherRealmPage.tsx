@@ -18,6 +18,7 @@ export function WitcherRealmPage() {
         title="Witcher Realm — Weriton Petreca"
         description="Extensão pessoal e experimental do portfólio de Weriton Petreca, explorando arquitetura de software através do universo The Witcher."
         path="/witcher-realm"
+        favicon="/witcher-favicon.ico"
       />
 
       <div className="mx-auto max-w-2xl text-center">
