@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { ContactForm } from "../src/pages/professional/sections/ContactForm.tsx"; // Ajuste o caminho conforme sua estrutura
+import { ContactForm } from "../src/pages/professional/sections/ContactForm.tsx";
 import * as contactLib from "../src/lib/contact";
 
 // Mock da biblioteca de envio de mensagem
@@ -42,7 +42,7 @@ describe("ContactForm", () => {
     });
 
     expect(
-      screen.getByText(/mensagem enviada com sucesso/i),
+      screen.getByText(/transmissão concluída!/i),
     ).toBeInTheDocument();
   });
 
@@ -56,7 +56,7 @@ describe("ContactForm", () => {
     expect(screen.getByText("19 / 3000")).toBeInTheDocument();
   });
 
-  it("desabilita o botão e exibe 'Enviando Mensagem...' enquanto aguarda a API", async () => {
+  it("desabilita o botão e exibe 'Transmitindo Mensagem...' enquanto aguarda a API", async () => {
     // Retorna uma promessa pendente para prender o estado em 'submitting'
     vi.mocked(contactLib.sendContactMessage).mockReturnValue(
       new Promise(() => {}),
@@ -77,9 +77,9 @@ describe("ContactForm", () => {
     const button = screen.getByRole("button", { name: /enviar mensagem/i });
     fireEvent.click(button);
 
-    // O botão deve assumir o estado desabilitado e o texto de submitting
+    // O botão deve assumir o estado desabilitado e o texto de submitting ajustado
     const submittingBtn = screen.getByRole("button", {
-      name: /enviando mensagem\.\.\./i,
+      name: /transmitindo mensagem\.\.\./i,
     });
     expect(submittingBtn).toBeDisabled();
   });
@@ -110,7 +110,7 @@ describe("ContactForm", () => {
     });
   });
 
-  it("permite resetar o formulário ao clicar em 'Enviar outra mensagem' após o sucesso", async () => {
+  it("permite resetar o formulário ao clicar em 'Enviar Nova Mensagem' após o sucesso", async () => {
     vi.mocked(contactLib.sendContactMessage).mockResolvedValue({
       ok: true,
     });
@@ -131,13 +131,13 @@ describe("ContactForm", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/mensagem enviada com sucesso/i),
+        screen.getByText(/transmissão concluída!/i),
       ).toBeInTheDocument();
     });
 
-    // Clica para voltar ao form
+    // Clica para voltar ao form (texto ajustado do botão)
     fireEvent.click(
-      screen.getByRole("button", { name: /enviar outra mensagem/i }),
+      screen.getByRole("button", { name: /enviar nova mensagem/i }),
     );
 
     // O formulário original deve voltar a ser visível
