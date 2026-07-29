@@ -139,43 +139,33 @@ jobs:
       - name: Build Production Bundle (Vite)
         run: npm run build
 
-      # 1. Arquivos Estáticos Compilados (CSS, JS, Imagens de código em dist/assets) - Cache Longo (1 ano)
-      - name: Deploy Static Assets (dist/ - cache longo)
+      # 1. Sincroniza apenas os pacotes compilados com HASH (dist/assets/*)
+      - name: Deploy Hashed Assets to S3 (Immutable Cache)
         run: |
-          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
+          aws s3 sync dist/assets/ s3://${{ secrets.AWS_S3_BUCKET_NAME }}/assets/ \
             --delete \
-            --exclude "index.html" \
-            --exclude "robots.txt" \
-            --exclude "sitemap.xml" \
-            --exclude "*.ico" \
-            --exclude "favicon.svg" \
-            --exclude "site.webmanifest" \
-            --exclude "apple-touch-icon.png" \
-            --exclude "favicon-*.png" \
-            --exclude "web-app-manifest-*.png" \
-            --exclude "og-image.*" \
-            --cache-control "max-age=31536000, immutable"
+            --cache-control "public, max-age=31536000, immutable"
 
-      # 2. HTML, Favicons e Arquivos de Descoberta - Sem Cache (Revalidação Imediata)
-      - name: Deploy Entry Files & Favicons (dist/ - sem cache)
+      # 2. Sincroniza TUDO que veio da pasta public/ + index.html (excluindo a pasta assets/)
+      - name: Deploy Public Assets & Entrypoints to S3 (No Cache)
         run: |
-          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
-            --exclude "*" \
-            --include "index.html" \
-            --include "robots.txt" \
-            --include "sitemap.xml" \
-            --include "*.ico" \
-            --include "favicon.svg" \
-            --include "site.webmanifest" \
-            --include "apple-touch-icon.png" \
-            --include "favicon-*.png" \
-            --include "web-app-manifest-*.png" \
-            --include "og-image.*" \
-            --cache-control "max-age=0, no-cache, no-store, must-revalidate"
+          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }}/ \
+            --exclude "assets/*" \
+            --delete \
+            --metadata-directive REPLACE \
+            --cache-control "public, max-age=0, must-revalidate"
 
-      # 3. Invalidação do CloudFront para propagação imediata no domínio
+      # 3. Invalidação da CDN (AWS CloudFront)
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
+
+      # 4. Invalidação da Borda Proxy Externa (Cloudflare)
+      - name: Purge Cloudflare Edge Cache
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'

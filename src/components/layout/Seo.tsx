@@ -3,13 +3,9 @@ import { Helmet } from "react-helmet-async";
 interface SeoProps {
   title: string;
   description: string;
-  /** Caminho absoluto da rota, ex: "/" ou "/witcher-realm" — usado para montar a URL canônica. */
   path: string;
-  /** Tipo de página, padrão 'website'. Para artigos/blog, use 'article'. */
   type?: "website" | "article";
-  /** URL da imagem de compartilhamento Open Graph. Se omitida, usa "/og-image.png". */
   image?: string;
-  /** Caminho do favicon específico da rota (ex: "/witcher-favicon.ico"). Se omitido, usa o padrão "/favicon.ico". */
   favicon?: string;
 }
 
@@ -24,11 +20,14 @@ export function Seo({
   const baseUrl = "https://weriton.dev";
   const url = `${baseUrl}${path}`;
 
-  // Imagem de compartilhamento padrão
+  // Versão global de cache-busting para forçar atualização no Cloudflare/Navegadores
+  const CACHE_VERSION = "?v=2";
+  
+  // Trata dinamicamente qualquer favicon passado por parâmetro (ex: /witcher-favicon.ico)
+  const activeFavicon = `${favicon}${CACHE_VERSION}`;
   const defaultImage = `${baseUrl}/og-image.png`;
   const finalImage = image ?? defaultImage;
 
-  // Dados Estruturados (Schema.org) para autoridade do perfil no Google
   const personSchema = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -50,21 +49,20 @@ export function Seo({
       <meta name="description" content={description} />
       <link rel="canonical" href={url} />
 
-      {/* Favicons Dinâmicos */}
-      <link rel="icon" type="image/x-icon" href={favicon} />
-      <link rel="shortcut icon" href={favicon} />
-      
-      {/* Padrões adicionais quando estiver na rota principal */}
+      {/* Favicon Dinâmico Roteável (Funciona para /favicon.ico ou /witcher-favicon.ico) */}
+      <link rel="icon" type="image/x-icon" href={activeFavicon} />
+      <link rel="shortcut icon" href={activeFavicon} />
+
+      {/* Metadados Estáticos Padrão da Aplicação */}
       {favicon === "/favicon.ico" && (
         <>
-          <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-          <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-          <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-          <link rel="manifest" href="/site.webmanifest" />
+          <link rel="icon" type="image/png" sizes="96x96" href={`/favicon-96x96.png${CACHE_VERSION}`} />
+          <link rel="apple-touch-icon" sizes="180x180" href={`/apple-touch-icon.png${CACHE_VERSION}`} />
+          <link rel="manifest" href={`/site.webmanifest${CACHE_VERSION}`} />
         </>
       )}
 
-      {/* Open Graph (Facebook, LinkedIn, Discord, Slack) */}
+      {/* Open Graph */}
       <meta property="og:type" content={type} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
@@ -79,7 +77,7 @@ export function Seo({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={finalImage} />
 
-      {/* Dados Estruturados (Schema.org) */}
+      {/* Schema.org */}
       <script type="application/ld+json">
         {JSON.stringify(personSchema)}
       </script>
