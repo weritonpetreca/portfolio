@@ -37,12 +37,47 @@ describe("ContactForm", () => {
         name: "Geralt de Rívia",
         email: "geralt@kaermorhen.com",
         message: "Preciso de um contrato de caça.",
+        website_hp: "", // Honeypot enviado como string vazia para usuários legítimos
       });
     });
 
     expect(
       screen.getByText(/transmissão concluída!/i),
     ).toBeInTheDocument();
+  });
+
+  it("captura o valor do campo Honeypot quando preenchido por um bot", async () => {
+    vi.mocked(contactLib.sendContactMessage).mockResolvedValue({
+      ok: true,
+    });
+
+    render(<ContactForm />);
+
+    fireEvent.change(screen.getByLabelText(/nome/i), {
+      target: { value: "Bot Spam" },
+    });
+    fireEvent.change(screen.getByLabelText(/e-mail/i), {
+      target: { value: "bot@spam.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/mensagem/i), {
+      target: { value: "Compre produtos aqui" },
+    });
+    
+    // Simula o bot preenchendo o campo invisível do Honeypot
+    fireEvent.change(screen.getByLabelText(/não preencha este campo/i), {
+      target: { value: "http://link-malicioso.com" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /enviar mensagem/i }));
+
+    await waitFor(() => {
+      expect(contactLib.sendContactMessage).toHaveBeenCalledWith({
+        name: "Bot Spam",
+        email: "bot@spam.com",
+        message: "Compre produtos aqui",
+        website_hp: "http://link-malicioso.com",
+      });
+    });
   });
 
   it("atualiza o contador de caracteres dinamicamente conforme o usuário digita", () => {

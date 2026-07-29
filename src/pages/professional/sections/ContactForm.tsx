@@ -7,7 +7,6 @@ const MAX_NAME_LENGTH = 100;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_MESSAGE_LENGTH = 3000;
 
-// Tipografia e foco ajustados para evitar zoom automático no mobile (16px / text-base)
 const inputStyles =
   "w-full rounded-md border border-forge-700/80 bg-forge-950/90 px-4 py-3 " +
   "font-sans text-sm sm:text-base text-bone placeholder:text-steel/50 transition-all duration-200 " +
@@ -39,6 +38,8 @@ export function ContactForm() {
       name: String(data.get("name") ?? "").trim(),
       email: String(data.get("email") ?? "").trim(),
       message: messageText.trim(),
+      // Honeypot: Se um bot preencher este campo no DOM, ele é capturado aqui
+      website_hp: String(data.get("website_hp") ?? "").trim(),
     });
 
     if (result.ok) {
@@ -76,6 +77,19 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      
+      {/* 🍯 ARMADILHA HONEYPOT (Totalmente invisível para humanos e leitores de tela) */}
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="website_hp">Não preencha este campo se for humano</label>
+        <input
+          id="website_hp"
+          name="website_hp"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
+
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="name" className="mb-2 font-mono text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
@@ -114,7 +128,6 @@ export function ContactForm() {
             <span>💬</span> Mensagem
           </label>
           
-          {/* Indicador e Contador de Caracteres */}
           <span
             className={`font-mono text-xs transition-colors ${
               isAtLimit
