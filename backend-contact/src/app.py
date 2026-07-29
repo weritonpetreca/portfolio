@@ -24,7 +24,9 @@ def build_response(status_code: int, body: dict) -> dict:
     return {
         "statusCode": status_code,
         "headers": {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
         },
         "body": json.dumps(body)
     }
@@ -34,17 +36,23 @@ def sanitize_input(text: str) -> str:
     return re.sub(r"[\r\n]", " ", text).strip()
 
 def lambda_handler(event: dict, context) -> dict:
-    logger.info("Iniciando processamento da requisição de contato.")
+    request_id = getattr(context, 'aws_request_id', 'local-test')
+    logger.info("Iniciando processamento da requisição de contato. RequestId: %s", request_id)
 
     try:
         raw_body = event.get("body", "{}")
         
         # Proteção adicional contra payloads massivos no corpo
         if len(raw_body) > 10000: # Max 10KB
-            logger.warning("Payload rejeitado: Tamanho total excede 10KB.")
+            logger.warning("Payload rejeitado: Tamanho total excede 10KB. RequestId: %s", request_id)
             return build_response(413, {"error": "Payload muito grande."})
 
         data = json.loads(raw_body) if raw_body else {}
+
+        # Anti-Spam (Honeypot): Se o campo escondido vier preenchido por um bot, descarta silenciosamente
+        if data.get("website_hp"):
+            logger.info("Bot detectado via Honeypot. RequestId: %s", request_id)
+            return build_response(200, {"ok": True, "message": "Mensagem enviada com sucesso!"})  # Resposta genérica para bots
         
         raw_name = str(data.get("name", "")).strip()
         raw_email = str(data.get("email", "")).strip()
@@ -78,6 +86,8 @@ def lambda_handler(event: dict, context) -> dict:
             f"Nome: {clean_name}\n"
             f"E-mail: {clean_email}\n\n"
             f"Mensagem:\n{raw_message}\n"
+            f"--- Meta ---\n"
+            f"RequestId: {request_id}\n"
         )
 
         # Disparo via SES
@@ -91,14 +101,15 @@ def lambda_handler(event: dict, context) -> dict:
             }
         )
 
-        logger.info("E-mail disparado com sucesso via Amazon SES.")
+        logger.info("E-mail disparado com sucesso via Amazon SES. RequestId: %s", request_id)
         return build_response(200, {"ok": True, "message": "Mensagem enviada com sucesso!"})
 
     except json.JSONDecodeError:
+        logger.error("Erro ao decodificar JSON do payload. RequestId: %s", request_id)
         return build_response(400, {"error": "Payload JSON malformado."})
     except ClientError as e:
-        logger.error(f"Erro SES: {str(e)}")
+        logger.error(f"Erro SES. RequestId: %s, Error: %s", request_id, str(e))
         return build_response(500, {"error": "Erro no serviço de e-mail."})
     except Exception as e:
-        logger.error(f"Erro genérico: {str(e)}")
+        logger.error(f"Erro genérico. RequestId: %s, Error: %s", request_id, str(e))
         return build_response(500, {"error": "Erro interno no servidor."})

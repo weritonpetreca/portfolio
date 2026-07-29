@@ -133,11 +133,13 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run Vitest Unit Tests
-        run: npm run test -- --run
+      # DevSecOps / Quality Gate 1: Análise Estática de Código (Oxlint)
+      - name: Run Linter (Oxlint)
+        run: npm run lint
 
-      - name: Build Production Bundle (Vite)
-        run: npm run build
+      # DevSecOps / Quality Gate 2: Testes Unitários e de Integração (Vitest)
+      - name: Run Vitest Unit Tests
+        run: npm run test
 
       # 1. Sincroniza apenas os pacotes compilados com HASH (dist/assets/*)
       - name: Deploy Hashed Assets to S3 (Immutable Cache)

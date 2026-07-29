@@ -2,6 +2,8 @@ export interface ContactPayload {
   name: string;
   email: string;
   message: string;
+  /** Campo Honeypot opcional para captura de bots de spam. */
+  website_hp?: string;
 }
 
 export interface SendResult {
@@ -41,6 +43,7 @@ export async function sendContactMessage(
       return {
         ok: false,
         error:
+          data.error ||
           data.message ||
           "Erro ao enviar mensagem. Tente novamente mais tarde.",
       };

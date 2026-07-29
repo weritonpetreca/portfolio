@@ -51,8 +51,9 @@ Resources:
       Runtime: python3.12
       Architectures:
         - arm64 # Graviton2: Mais rápido e 20% mais barato (Incluso no Free Tier)
-      Timeout: 30
+      Timeout: 10
       MemorySize: 128
+      Tracing: Active
       Environment:
         Variables:
           VERIFIED_EMAIL_SENDER: !Ref VerifiedEmailSender
