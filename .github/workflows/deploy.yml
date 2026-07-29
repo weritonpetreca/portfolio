@@ -139,7 +139,7 @@ jobs:
       - name: Build Production Bundle (Vite)
         run: npm run build
 
-      # 1. Arquivos Estáticos Compilados (CSS, JS, Imagens em dist/assets) - Cache Longo (1 ano)
+      # 1. Arquivos Estáticos Compilados (CSS, JS, Imagens de código em dist/assets) - Cache Longo (1 ano)
       - name: Deploy Static Assets (dist/ - cache longo)
         run: |
           aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
@@ -147,16 +147,30 @@ jobs:
             --exclude "index.html" \
             --exclude "robots.txt" \
             --exclude "sitemap.xml" \
+            --exclude "*.ico" \
+            --exclude "favicon.svg" \
+            --exclude "site.webmanifest" \
+            --exclude "apple-touch-icon.png" \
+            --exclude "favicon-*.png" \
+            --exclude "web-app-manifest-*.png" \
+            --exclude "og-image.*" \
             --cache-control "max-age=31536000, immutable"
 
-      # 2. HTML e Arquivos de Descoberta (index.html, robots.txt, sitemap.xml) - Sem Cache
-      - name: Deploy Entry Files (dist/ - sem cache)
+      # 2. HTML, Favicons e Arquivos de Descoberta - Sem Cache (Revalidação Imediata)
+      - name: Deploy Entry Files & Favicons (dist/ - sem cache)
         run: |
           aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
             --exclude "*" \
             --include "index.html" \
             --include "robots.txt" \
             --include "sitemap.xml" \
+            --include "*.ico" \
+            --include "favicon.svg" \
+            --include "site.webmanifest" \
+            --include "apple-touch-icon.png" \
+            --include "favicon-*.png" \
+            --include "web-app-manifest-*.png" \
+            --include "og-image.*" \
             --cache-control "max-age=0, no-cache, no-store, must-revalidate"
 
       # 3. Invalidação do CloudFront para propagação imediata no domínio

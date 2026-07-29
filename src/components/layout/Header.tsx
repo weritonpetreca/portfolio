@@ -25,21 +25,26 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-forge-700/80 bg-forge-950/90 backdrop-blur-md transition-all">
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3.5">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 py-3.5">
         
-        {/* Logo / Nome com Toque de Forja */}
+        {/* Logo: WERITON.dev colado e alinhado por baseline */}
         <a
           href="#"
           onClick={(e) => handleScroll(e, "#")}
-          className="group font-mono text-sm sm:text-base font-bold tracking-widest text-bone transition-colors"
+          className="group flex shrink-0 items-baseline gap-1 font-mono font-bold transition-colors"
           title="Voltar ao topo"
         >
-          <span className="text-ember transition-transform duration-300 group-hover:inline-block group-hover:scale-125">⚡</span> W.{" "}
-          <span className="text-slate-200 transition-colors group-hover:text-amber-400">PETRECA</span>
+          <span className="text-ember self-center transition-transform duration-300 group-hover:scale-125">⚡</span>
+          <span className="text-sm sm:text-base text-bone tracking-wider transition-colors group-hover:text-amber-400">
+            WERITON
+          </span>
+          <span className="text-xs text-amber-400 font-semibold tracking-normal">
+            .dev
+          </span>
         </a>
 
         {/* Menu de Navegação Rápida (Desktop / Tablet) */}
-        <nav className="hidden md:flex items-center gap-6 font-mono text-xs font-bold uppercase tracking-wider text-steel">
+        <nav className="hidden md:flex items-center gap-4 lg:gap-6 font-mono text-xs font-bold uppercase tracking-wider text-steel">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.label}
@@ -52,8 +57,8 @@ export function Header() {
           ))}
         </nav>
 
-        {/* Status Indicador Pulsante (Verde / Operational Online) */}
-        <div className="flex items-center gap-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-mono text-xs shadow-sm">
+        {/* Status Indicador Pulsante (Com margem para não encostar na navegação) */}
+        <div className="flex shrink-0 items-center gap-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-mono text-xs shadow-sm ml-4 lg:ml-6">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
