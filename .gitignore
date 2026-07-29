@@ -38,6 +38,7 @@ build/
 .cache/
 .eslintcache
 .stylelintcache
+*.tsbuildinfo
 
 # ==========================================
 # Logs

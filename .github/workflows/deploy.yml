@@ -141,6 +141,9 @@ jobs:
       - name: Run Vitest Unit Tests
         run: npm run test
 
+      - name: Build Production Bundle (Vite)
+        run: npm run build
+
       # 1. Sincroniza apenas os pacotes compilados com HASH (dist/assets/*)
       - name: Deploy Hashed Assets to S3 (Immutable Cache)
         run: |
