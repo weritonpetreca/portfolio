@@ -62,19 +62,19 @@ export function SoftSkills() {
             {evidence.map((item) => (
               <div
                 key={item.trait}
-                className="group rounded-lg border border-forge-700/80 border-l-4 border-l-ember bg-forge-900/80 p-5 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:border-l-amber-400 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                className="group rounded-lg border border-forge-700/80 border-l-4 border-l-ember bg-forge-900/80 p-5 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:border-l-amber-400 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between"
               >
-                {/* Título do Traço */}
-                <div className="flex items-center justify-between border-b border-forge-700/60 pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl sm:text-2xl transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
+                {/* Título do Traço + Badge (Com Flex Ajustado) */}
+                <div className="flex w-full items-center justify-between gap-2 border-b border-forge-700/60 pb-3">
+                  <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                    <span className="shrink-0 text-xl sm:text-2xl transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
                       {item.icon}
                     </span>
-                    <h3 className="font-mono text-sm sm:text-base font-bold text-bone">
+                    <h3 className="font-mono text-xs sm:text-sm md:text-base font-bold text-bone leading-tight">
                       {item.trait}
                     </h3>
                   </div>
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-amber-500/90 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/30">
+                  <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-wider text-amber-500/90 bg-amber-500/10 px-2 py-1 sm:px-2.5 sm:py-1 rounded border border-amber-500/30">
                     Fato Comprovado
                   </span>
                 </div>
