@@ -1,53 +1,165 @@
-name: Deploy Portfolio to AWS S3
+name: Deploy Portfolio Fullstack to AWS
 
 on:
   push:
     branches:
-      - "main"
+      - main
+      - refactor/nova-arquitetura
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write # Necessário para autenticação OIDC (Zero Chaves Fixas)
+  contents: read
 
 jobs:
-  deploy:
+  # =================================================================
+  # JOB 1: Fundação / Bootstrap (Bucket de Artefatos + SSM Base)
+  # =================================================================
+  deploy-bootstrap:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v6
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
-      # Arquivos estáticos (imagens, fontes, CSS, JS) — cache longo de 1 ano.
-      # O browser só baixa novamente se o nome/hash do arquivo mudar.
-      # Isso reduz latência nas visitas subsequentes e melhora os Core Web Vitals.
-      - name: Deploy Static Assets (cache longo)
+      - name: Deploy Bootstrap Stack (CloudFormation)
         run: |
-          aws s3 sync . s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
+          aws cloudformation deploy \
+            --template-file infra/bootstrap/template.yaml \
+            --stack-name portfolio-bootstrap \
+            --no-fail-on-empty-changeset \
+            --region us-east-1
+
+  # =================================================================
+  # JOB 2: Backend Serverless (AWS SAM + Lambda Python ARM64 + SES)
+  # =================================================================
+  deploy-backend:
+    needs: deploy-bootstrap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.12 Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run Backend Unit Tests (Pytest)
+        run: |
+          cd backend-contact
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest pytest-mock boto3
+          pytest
+
+      - name: Install AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Fetch SAM Artifact Bucket Name from SSM
+        run: |
+          ARTIFACT_BUCKET=$(aws ssm get-parameter --name "/portfolio/bootstrap/sam_artifact_bucket" --query "Parameter.Value" --output text)
+          echo "SAM_ARTIFACT_BUCKET=$ARTIFACT_BUCKET" >> $GITHUB_ENV
+
+      - name: Clean up failed initial stack (ROLLBACK_COMPLETE)
+        run: |
+          STACK_NAME="portfolio-backend-contact"
+          
+          # Consulta o status atual da stack no CloudFormation
+          STACK_STATUS=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --region us-east-1 \
+            --query "Stacks[0].StackStatus" \
+            --output text 2>/dev/null || echo "STACK_NOT_FOUND")
+
+          echo "Status atual da stack: $STACK_STATUS"
+
+          # Se estiver presa em ROLLBACK_COMPLETE, deleta e aguarda finalizar
+          if [ "$STACK_STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "Stack em estado irrecuperável (ROLLBACK_COMPLETE). Iniciando limpeza automática..."
+            aws cloudformation delete-stack --stack-name "$STACK_NAME" --region us-east-1
+            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME" --region us-east-1
+            echo "Stack deletada com sucesso. Prosseguindo com o novo deploy..."
+          fi
+
+      - name: Build & Deploy Backend (AWS SAM)
+        run: |
+          cd backend-contact
+          sam build
+          sam deploy \
+            --config-file samconfig.toml \
+            --s3-bucket ${{ env.SAM_ARTIFACT_BUCKET }} \
+            --parameter-overrides VerifiedEmailSender="${{ secrets.VERIFIED_EMAIL_SENDER }}" \
+            --no-fail-on-empty-changeset
+
+  # =================================================================
+  # JOB 3: Frontend Web (React + Vite + S3 + CloudFront)
+  # =================================================================
+  deploy-frontend:
+    needs: deploy-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Fetch Contact API URL from SSM Parameter Store
+        run: |
+          API_URL=$(aws ssm get-parameter --name "/portfolio/contact/api_url" --query "Parameter.Value" --output text)
+          echo "VITE_CONTACT_API_URL=$API_URL" >> $GITHUB_ENV
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Vitest Unit Tests
+        run: npm run test -- --run
+
+      - name: Build Production Bundle (Vite)
+        run: npm run build
+
+      # 1. Arquivos Estáticos Compilados (CSS, JS, Imagens em dist/assets) - Cache Longo (1 ano)
+      - name: Deploy Static Assets (dist/ - cache longo)
+        run: |
+          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
             --delete \
-            --exclude ".git/*" \
-            --exclude ".github/*" \
-            --exclude ".gitignore" \
-            --exclude "README.md" \
-            --exclude "*.html" \
+            --exclude "index.html" \
             --exclude "robots.txt" \
             --exclude "sitemap.xml" \
             --cache-control "max-age=31536000, immutable"
 
-      # HTML, robots.txt e sitemap.xml — sempre revalidados.
-      # max-age=0 + must-revalidate garante que o recrutador nunca veja
-      # uma versão antiga do portfólio após um deploy.
-      - name: Deploy HTML e arquivos de descoberta (sem cache)
+      # 2. HTML e Arquivos de Descoberta (index.html, robots.txt, sitemap.xml) - Sem Cache
+      - name: Deploy Entry Files (dist/ - sem cache)
         run: |
-          for file in index.html robots.txt sitemap.xml; do
-            if [ -f "$file" ]; then
-              aws s3 cp "$file" s3://${{ secrets.AWS_S3_BUCKET_NAME }}/"$file" \
-                --cache-control "max-age=0, no-cache, must-revalidate"
-            fi
-          done
+          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} \
+            --exclude "*" \
+            --include "index.html" \
+            --include "robots.txt" \
+            --include "sitemap.xml" \
+            --cache-control "max-age=0, no-cache, no-store, must-revalidate"
 
+      # 3. Invalidação do CloudFront para propagação imediata no domínio
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \

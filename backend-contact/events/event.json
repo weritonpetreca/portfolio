@@ -1,0 +1,3 @@
+{
+  "body": "{\"name\": \"Weriton Petreca\", \"email\": \"eulcf@hotmail.com\", \"message\": \"Testando o envio de e-mail localmente via AWS SAM CLI!\"}"
+}

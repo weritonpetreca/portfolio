@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Stack de Fundação/Bootstrap - Bucket de Artefatos do SAM e Recursos Base (DevSecOps & FinOps)
+
+Parameters:
+  Environment:
+    Type: String
+    Default: Production
+    AllowedValues:
+      - Production
+      - Staging
+
+Resources:
+  # =================================================================
+  # 1. Bucket S3 de Artefatos para Builds do AWS SAM
+  # =================================================================
+  SAMArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Nome único padronizado contendo o ID da conta AWS para evitar colisão global
+      BucketName: !Sub "portfolio-sam-artifacts-${AWS::AccountId}-${AWS::Region}"
+      
+      # DevSecOps: Bloqueio estrito de acesso público
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+      # DevSecOps: Encriptação em repouso por padrão (SSE-S3)
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+      # FinOps: Limpeza automática de builds antigos após 7 dias (Custo = R$ 0,00)
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldBuildArtifacts
+            Status: Enabled
+            ExpirationInDays: 7
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 1
+
+      # Tagging de Recursos
+      Tags:
+        - Key: Project
+          Value: Portfolio
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation-Bootstrap
+        - Key: Owner
+          Value: WeritonPetreca
+
+  # =================================================================
+  # 2. Registra o nome do Bucket no SSM Parameter Store
+  # =================================================================
+  SAMArtifactBucketParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /portfolio/bootstrap/sam_artifact_bucket
+      Type: String
+      Value: !Ref SAMArtifactBucket
+      Description: Nome do Bucket S3 de artefatos utilizado pelo AWS SAM no deploy
+      Tags:
+        Project: Portfolio
+        Environment: !Ref Environment
+        ManagedBy: CloudFormation-Bootstrap
+
+Outputs:
+  ArtifactBucketName:
+    Description: Nome do Bucket S3 criado para artefatos do SAM
+    Value: !Ref SAMArtifactBucket
+    Export:
+      Name: PortfolioBootstrap-SAMArtifactBucket

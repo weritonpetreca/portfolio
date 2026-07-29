@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind v4 mudou a configuração de JS (tailwind.config.js) para CSS.
+ * Se você pesquisar "Tailwind config" na internet, boa parte dos resultados
+ * ainda vai te mostrar tailwind.config.js com theme.extend.colors — isso é
+ * o padrão da v3. Na v4, os tokens vivem aqui, dentro de @theme, e o Tailwind
+ * gera automaticamente as classes utilitárias correspondentes
+ * (--color-ember vira bg-ember, text-ember, border-ember, etc).
+ */
+@theme {
+  /* Persona Profissional — paleta "Forjado": ferro, brasa, disciplina.
+     Base quase-preta com fundo QUENTE (fuligem/carvão), não fria — é o que
+     diferencia visualmente da Witcher Realm abaixo, que puxa pro verde-musgo. */
+  --color-forge-950: #171310; /* fundo principal — fuligem */
+  --color-forge-900: #211b17; /* superfícies / cards */
+  --color-forge-700: #423830; /* bordas e linhas estruturais — bronze envelhecido */
+  --color-steel: #a69c8d; /* texto secundário — aço com pátina */
+  --color-bone: #ede6d9; /* texto primário — osso/pergaminho, nunca branco puro */
+  --color-ember: #d2451f; /* accent principal — brasa/ferro em brasa */
+  --color-ember-soft: #e87f4e; /* hover / estados secundários do accent */
+
+  /* Persona Witcher Realm — paleta "fogueira e pergaminho", propositalmente
+     distinta (puxa pro verde-musgo, não pro ferro) e SEM reaproveitar tons
+     oficiais de nenhuma obra licenciada. */
+  --color-realm-950: #12160f;
+  --color-realm-900: #1b2116;
+  --color-realm-parchment: #e8dfc8;
+  --color-realm-ember: #b5502e;
+
+  /* Cinzel: serifada monumental, inspirada em inscrições romanas — dá peso
+     e gravidade sem cair no cliché "fonte de RPG" ilegível. Usada só em
+     títulos grandes, nunca em corpo de texto. */
+  --font-display: "Cinzel", ui-serif, serif;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-realm-display: "Spectral", ui-serif, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+/* Estado de foco visível — acessibilidade (RNF-02), não decoração */
+:focus-visible {
+  outline: 2px solid var(--color-ember);
+  outline-offset: 2px;
+}
+
+/* Textura sutil de "metal envelhecido" — grão muito discreto, só pra tirar
+   a chapadura de um dark-mode liso. Em opacidade baixa o suficiente pra
+   nunca atrapalhar leitura (RNF-01/02 continuam valendo mesmo com clima). */
+.texture-forged {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+.hover-lift {
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-ember);
+  box-shadow: 0 10px 15px -3px rgba(210, 69, 31, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,13 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "portfolio-backend-contact"
+s3_prefix = "contact-email"
+region = "us-east-1"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM"
+disable_rollback = false
+image_repositories = []
+
+# Tags globais para FinOps e Alocação de Custos
+tags = "Project=\"Portfolio\" Environment=\"Production\" ManagedBy=\"AWS-SAM\" Owner=\"WeritonPetreca\""

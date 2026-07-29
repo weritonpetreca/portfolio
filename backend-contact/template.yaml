@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Backend Serverless com HTTP API, ARM64 Graviton2, SES e DevSecOps Estrito
+
+Parameters:
+  VerifiedEmailSender:
+    Type: String
+    Description: E-mail remetente/destinatário para o formulário (Injetado via GitHub Secrets no deploy)
+    NoEcho: true # Oculta o valor nos logs de visualização do CloudFormation
+
+Resources:
+  # =================================================================
+  # 1. Recurso SES - Identidade de E-mail
+  # =================================================================
+  ContactEmailIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity: !Ref VerifiedEmailSender
+
+  # =================================================================
+  # 2. API Gateway HTTP (v2) - Trata CORS na borda e Rate Limiting
+  # =================================================================
+  ContactHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowOrigins:
+          - "https://weriton.dev"
+          - "http://localhost:5173" # Permitido para testes locais
+        AllowMethods:
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - "Content-Type"
+        MaxAge: 300
+      # FinOps & Security: Proteção contra Spike/DDoS na borda
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 5  # Máximo de requisições simultâneas
+        ThrottlingRateLimit: 2   # Máximo de requisições por segundo
+
+  # =================================================================
+  # 3. Função Lambda (ARM64 / Graviton2)
+  # =================================================================
+  ContactEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: portfolio-contact-email-sender
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - arm64 # Graviton2: Mais rápido e 20% mais barato (Incluso no Free Tier)
+      Timeout: 30
+      MemorySize: 128
+      Environment:
+        Variables:
+          VERIFIED_EMAIL_SENDER: !Ref VerifiedEmailSender
+
+      # DevSecOps: Menor privilégio estrito apontando APENAS para a ARN da identidade SES
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${ContactEmailIdentity}"
+
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /contact
+            Method: POST
+            ApiId: !Ref ContactHttpApi
+
+      Tags:
+        Project: Portfolio
+        Environment: Production
+        ManagedBy: AWS-SAM
+
+  # =================================================================
+  # 4. Registra a URL pública do API Gateway no SSM Parameter Store
+  # =================================================================
+  ContactApiUrlParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /portfolio/contact/api_url
+      Type: String
+      Value: !Sub "https://${ContactHttpApi}.execute-api.${AWS::Region}.amazonaws.com/contact"
+      Description: Endpoint HTTP API para o formulário de contato React consumir
+      Tags:
+        Project: Portfolio
+        Environment: Production
+
+Outputs:
+  ContactApiUrl:
+    Description: URL HTTP API do endpoint /contact
+    Value: !Sub "https://${ContactHttpApi}.execute-api.${AWS::Region}.amazonaws.com/contact"
