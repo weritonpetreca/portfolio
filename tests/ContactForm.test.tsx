@@ -33,7 +33,6 @@ describe("ContactForm", () => {
     fireEvent.click(screen.getByRole("button", { name: /enviar mensagem/i }));
 
     await waitFor(() => {
-      // Garante que o trim() foi executado e a lib recebeu os dados corretos
       expect(contactLib.sendContactMessage).toHaveBeenCalledWith({
         name: "Geralt de Rívia",
         email: "geralt@kaermorhen.com",
@@ -52,12 +51,10 @@ describe("ContactForm", () => {
     const textarea = screen.getByLabelText(/mensagem/i);
     fireEvent.change(textarea, { target: { value: "Testando a mensagem" } });
 
-    // 19 caracteres digitados de 3000
     expect(screen.getByText("19 / 3000")).toBeInTheDocument();
   });
 
   it("desabilita o botão e exibe 'Transmitindo Mensagem...' enquanto aguarda a API", async () => {
-    // Retorna uma promessa pendente para prender o estado em 'submitting'
     vi.mocked(contactLib.sendContactMessage).mockReturnValue(
       new Promise(() => {}),
     );
@@ -77,7 +74,6 @@ describe("ContactForm", () => {
     const button = screen.getByRole("button", { name: /enviar mensagem/i });
     fireEvent.click(button);
 
-    // O botão deve assumir o estado desabilitado e o texto de submitting ajustado
     const submittingBtn = screen.getByRole("button", {
       name: /transmitindo mensagem\.\.\./i,
     });
@@ -135,12 +131,10 @@ describe("ContactForm", () => {
       ).toBeInTheDocument();
     });
 
-    // Clica para voltar ao form (texto ajustado do botão)
     fireEvent.click(
       screen.getByRole("button", { name: /enviar nova mensagem/i }),
     );
 
-    // O formulário original deve voltar a ser visível
     expect(screen.getByLabelText(/nome/i)).toBeInTheDocument();
   });
 });
