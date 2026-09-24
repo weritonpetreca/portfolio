@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Divider } from "../../../components/ui/Divider.tsx";
 
 interface TimelineItem {
@@ -77,81 +78,95 @@ export function Education() {
 
   return (
     <>
-      <Divider />
-      <section id="formacao" className="texture-forged px-6 py-20">
-        <div className="mx-auto max-w-4xl">
-          
+      <Divider stage="ETAPA V" />
+      <section id="formacao" className="texture-forged relative px-6 py-20">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="mx-auto max-w-4xl"
+        >
           {/* Cabeçalho da Seção */}
           <div className="flex flex-col gap-2">
-            <p className="font-mono text-sm font-bold uppercase tracking-widest text-ember flex items-center gap-2">
-              <span>📜</span> FORJA ACADÊMICA & INSÍGNIAS
+            <p className="font-mono text-xs sm:text-sm font-bold uppercase tracking-widest text-ember flex items-center gap-2">
+              <span>📜</span> FORJA ACADÊMICA & INSÍGNIAS · ETAPA V
             </p>
-            <h2 className="font-display text-3xl font-bold text-bone sm:text-4xl">
+            <h2 className="font-display text-3xl font-bold sm:text-4xl text-forged-gold">
               Formação & Certificações
             </h2>
-            <p className="mt-1 text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
+            <p className="font-mono text-xs sm:text-sm text-steel max-w-2xl leading-relaxed">
               Graduações, certificações oficiais de mercado e programas de especialização técnica.
             </p>
           </div>
 
           {/* Timeline Vertical */}
-          <ol className="relative ml-2 mt-10 space-y-6 border-l-2 border-forge-700/80 pl-6 sm:pl-10">
-            {visibleItems.map((item) => (
-              <li key={item.title} className="relative">
-                
-                {/* Marcador em Losango (Node de Conquista) */}
-                <span
-                  className={`absolute -left-[31px] sm:-left-[47px] top-4 h-4 w-4 rotate-45 border-2 transition-all duration-300 ${
-                    item.highlight
-                      ? "border-ember bg-forge-950 shadow-[0_0_12px_rgba(234,88,12,0.8)]"
-                      : "border-forge-700 bg-forge-950"
-                  }`}
-                  aria-hidden="true"
-                />
-
-                {/* Card do Item */}
-                <div
-                  className={`group rounded-lg border p-5 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 ${
-                    item.highlight
-                      ? "border-ember/80 bg-forge-900/90 shadow-[0_10px_35px_rgba(234,88,12,0.15)] hover:border-ember"
-                      : "border-forge-700/80 bg-forge-900/60 hover:border-amber-500/40 hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-                  }`}
+          <ol className="relative ml-2 mt-10 space-y-6 border-l-2 border-amber-600/40 pl-6 sm:pl-10">
+            <AnimatePresence>
+              {visibleItems.map((item, index) => (
+                <motion.li
+                  key={item.title}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.35, delay: index * 0.05 }}
+                  className="relative"
                 >
-                  {/* Badge de Destaque para Prêmios/Hackathons */}
-                  {item.highlight && (
-                    <div className="mb-3 inline-flex items-center gap-2 rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wider text-amber-400">
-                      <span>🏆 CONQUISTA LENDÁRIA</span>
+                  {/* Marcador em Losango (Node de Conquista com Brasa) */}
+                  <span
+                    className={`absolute -left-[31px] sm:-left-[47px] top-4 flex h-4 w-4 items-center justify-center rotate-45 border-2 transition-all duration-300 ${
+                      item.highlight
+                        ? "border-ember bg-forge-950 shadow-[0_0_15px_rgba(234,88,12,0.9)]"
+                        : "border-forge-700 bg-forge-950"
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {item.highlight && <span className="h-1.5 w-1.5 bg-amber-400" />}
+                  </span>
+
+                  {/* Card do Item */}
+                  <div
+                    className={`group rounded-xl border p-5 sm:p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 ${
+                      item.highlight
+                        ? "border-ember bg-gradient-to-b from-forge-900/95 via-forge-900/90 to-forge-950/95 shadow-[0_15px_35px_rgba(210,69,31,0.2)] hover:border-amber-400"
+                        : "border-forge-700/80 bg-gradient-to-b from-forge-900/80 to-forge-950/90 shadow-[0_10px_25px_rgba(0,0,0,0.5)] hover:border-amber-500/40 hover:shadow-[0_15px_35px_rgba(0,0,0,0.7)]"
+                    }`}
+                  >
+                    {/* Badge de Destaque para Prêmios/Hackathons */}
+                    {item.highlight && (
+                      <div className="mb-3 inline-flex items-center gap-2 rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wider text-amber-300 shadow-sm">
+                        <span>🏆 CONQUISTA LENDÁRIA</span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-forge-700/60 pb-3">
+                      <h3
+                        className={`font-display text-lg sm:text-xl font-bold group-hover:text-amber-300 transition-colors ${
+                          item.highlight ? "text-amber-400" : "text-bone"
+                        }`}
+                      >
+                        {item.title}
+                      </h3>
+                      <span
+                        className={`font-mono text-xs sm:text-sm font-semibold px-2.5 py-0.5 rounded border ${
+                          item.highlight
+                            ? "border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-sm"
+                            : "border-forge-700 bg-forge-950/90 text-steel"
+                        }`}
+                      >
+                        {item.period}
+                      </span>
                     </div>
-                  )}
 
-                  <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-forge-700/60 pb-3">
-                    <h3
-                      className={`font-display text-lg sm:text-xl font-bold ${
-                        item.highlight ? "text-ember" : "text-bone"
-                      }`}
-                    >
-                      {item.title}
-                    </h3>
-                    <span
-                      className={`font-mono text-xs sm:text-sm font-semibold px-2.5 py-0.5 rounded border ${
-                        item.highlight
-                          ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-                          : "border-forge-700 bg-forge-950/80 text-steel"
-                      }`}
-                    >
-                      {item.period}
-                    </span>
+                    {item.detail && (
+                      <p className="mt-3 font-sans text-sm sm:text-base leading-relaxed text-slate-300">
+                        {item.detail}
+                      </p>
+                    )}
                   </div>
-
-                  {item.detail && (
-                    <p className="mt-3 font-sans text-sm sm:text-base leading-relaxed text-slate-300">
-                      {item.detail}
-                    </p>
-                  )}
-                </div>
-
-              </li>
-            ))}
+                </motion.li>
+              ))}
+            </AnimatePresence>
           </ol>
 
           {/* Botão de Expansão (RPG Theme / Grimoire Action) */}
@@ -159,7 +174,7 @@ export function Education() {
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="group inline-flex items-center gap-3 rounded-md border border-forge-700 bg-forge-950/90 px-5 py-3 font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-400 hover:text-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.2)] active:translate-y-0"
+              className="group inline-flex items-center gap-3 rounded-md border border-forge-700 bg-forge-950/90 px-5 py-3 font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-400 hover:text-amber-300 hover:shadow-[0_0_15px_rgba(245,158,11,0.25)] active:translate-y-0"
               aria-expanded={isExpanded}
             >
               <span>{isExpanded ? "🔼" : "📜"}</span>
@@ -171,7 +186,7 @@ export function Education() {
             </button>
           </div>
 
-        </div>
+        </motion.div>
       </section>
     </>
   );

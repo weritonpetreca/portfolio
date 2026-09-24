@@ -1,5 +1,7 @@
-import type { MouseEvent } from "react";
+import { useState, useRef, type MouseEvent } from "react";
+import { motion } from "motion/react";
 import { Button } from "../../../components/ui/Button.tsx";
+import { EmbersCanvas } from "../../../components/ui/EmbersCanvas.tsx";
 
 const EQUIPPED_BADGES = [
   {
@@ -89,29 +91,99 @@ const SOCIAL_LINKS = [
 ] as const;
 
 export function Hero() {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const [tilt, setTilt] = useState({
+    rotateX: 0,
+    rotateY: 0,
+    glareX: 50,
+    glareY: 50,
+    isHovered: false,
+  });
+
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((centerY - y) / centerY) * 5;
+    const rotateY = ((x - centerX) / centerX) * 5;
+    const glareX = (x / rect.width) * 100;
+    const glareY = (y / rect.height) * 100;
+    setTilt({ rotateX, rotateY, glareX, glareY, isHovered: true });
+  };
+
+  const handleCardMouseLeave = () => {
+    setTilt({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50, isHovered: false });
+  };
+
   const handleScrollToContact = (e: MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    const contactSection = document.getElementById("contact") || document.getElementById("contato");
+    const contactSection = document.getElementById("contact");
     if (contactSection) {
       contactSection.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   return (
-    <section className="texture-forged relative overflow-hidden px-6 py-20">
-      <div className="relative mx-auto max-w-4xl">
+    <section className="texture-forged relative overflow-hidden px-6 py-20 lg:py-24">
+      {/* Sistema de Partículas de Brasa Atmosférica */}
+      <EmbersCanvas count={35} />
+
+      {/* Brilho Volumétrico Quente de Forja Medieval */}
+      <div
+        className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 h-[550px] w-[850px] rounded-full glow-torch-ambient blur-3xl opacity-75"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto max-w-4xl z-10">
         
-        {/* Card de Ficha de Personagem */}
-        <div className="mb-12 rounded-lg border border-forge-700/80 bg-forge-900/80 p-6 sm:p-8 shadow-2xl backdrop-blur-sm">
+        {/* Card de Ficha de Personagem / Bruxo da Nuvem com Efeito 3D Tilt */}
+        <motion.div
+          ref={cardRef}
+          onMouseMove={handleCardMouseMove}
+          onMouseLeave={handleCardMouseLeave}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            rotateX: tilt.rotateX,
+            rotateY: tilt.rotateY,
+          }}
+          transition={{
+            opacity: { duration: 0.7, ease: "easeOut" },
+            rotateX: { type: "spring", stiffness: 350, damping: 25 },
+            rotateY: { type: "spring", stiffness: 350, damping: 25 },
+          }}
+          style={{ transformStyle: "preserve-3d" }}
+          className="relative mb-12 rounded-xl border border-forge-700/90 bg-gradient-to-b from-forge-900/95 via-forge-900/90 to-forge-950/95 p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_35px_rgba(210,69,31,0.12)] backdrop-blur-md overflow-hidden transition-colors hover:border-amber-600/50"
+        >
+          {/* Reflexo Dinâmico Metálico (Glare) que segue o mouse */}
+          {tilt.isHovered && (
+            <div
+              className="pointer-events-none absolute inset-0 z-30 opacity-40 transition-opacity duration-300"
+              style={{
+                background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(251, 191, 36, 0.2) 0%, transparent 65%)`,
+              }}
+            />
+          )}
+
+          {/* Marcas Rúnicas Decorativas nos Cantos da Placa */}
+          <span className="absolute top-2.5 left-3 font-mono text-[11px] text-amber-500/40 select-none">᛭</span>
+          <span className="absolute top-2.5 right-3 font-mono text-[11px] text-amber-500/40 select-none">᛭</span>
+          <span className="absolute bottom-2.5 left-3 font-mono text-[11px] text-amber-500/40 select-none">᛭</span>
+          <span className="absolute bottom-2.5 right-3 font-mono text-[11px] text-amber-500/40 select-none">᛭</span>
+
           <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
             
             {/* Estrutura Única: Moldura Forjada com Cavidades de Gemas */}
             <div className="flex shrink-0 flex-col items-center self-center sm:self-start">
               
-              <div className="relative flex flex-col items-center rounded-xl border-2 border-amber-600/60 bg-gradient-to-b from-forge-900 via-forge-950 to-black p-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+              <div className="relative flex flex-col items-center rounded-xl border-2 border-amber-600/60 bg-gradient-to-b from-forge-900 via-forge-950 to-black p-3 shadow-[0_10px_30px_rgba(0,0,0,0.9),0_0_15px_rgba(210,69,31,0.2)]">
                 
-                {/* Foto Hexagonal Embutida */}
-                <div className="relative flex items-center justify-center p-[2px] bg-gradient-to-b from-amber-400 to-amber-700 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)]">
+                {/* Foto Hexagonal Embutida com Borda de Ouro Forjado */}
+                <div className="relative flex items-center justify-center p-[2px] bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)] shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                   <div className="h-44 w-40 overflow-hidden bg-forge-950 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)]">
                     <img
                       src="/profile-photo.jpg"
@@ -122,10 +194,10 @@ export function Hero() {
                 </div>
 
                 {/* Divisor Metálico Interno da Moldura */}
-                <div className="my-2.5 h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+                <div className="my-2.5 h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
 
-                {/* Cavidades/Soquetes Encravados (Sombra Interna / Depth) */}
-                <div className="flex items-center justify-center gap-2 rounded-lg bg-black/60 p-1.5 shadow-[inset_0_3px_6px_rgba(0,0,0,0.9)] border border-forge-800">
+                {/* Cavidades/Soquetes Encravados (Insígnias de Poder) */}
+                <div className="flex items-center justify-center gap-2.5 rounded-lg bg-black/70 p-1.5 shadow-[inset_0_3px_8px_rgba(0,0,0,0.95)] border border-forge-800">
                   {EQUIPPED_BADGES.map((badge) => (
                     <a
                       key={badge.id}
@@ -133,16 +205,17 @@ export function Hero() {
                       target={badge.isExternal ? "_blank" : undefined}
                       rel={badge.isExternal ? "noopener noreferrer" : undefined}
                       title={badge.title}
-                      className="group relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-md border border-forge-900 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_12px_rgba(245,158,11,0.5),inset_0_0_8px_rgba(245,158,11,0.2)]"
+                      className="group relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-md border border-forge-900 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_14px_rgba(245,158,11,0.6),inset_0_0_8px_rgba(245,158,11,0.3)]"
                     >
                       <img
                         src={badge.image}
                         alt={badge.title}
-                        className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110"
+                        className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-115"
                       />
                       
                       {/* Tooltip em cima da badge */}
-                      <div className="pointer-events-none absolute bottom-full mb-3 hidden w-44 rounded-md border border-forge-700 bg-forge-950 p-2 text-center font-mono text-xs text-bone shadow-2xl group-hover:block z-30">
+                      <div className="pointer-events-none absolute bottom-full mb-3 hidden w-48 rounded-md border border-amber-600/40 bg-forge-950/95 p-2 text-center font-mono text-xs text-bone shadow-2xl group-hover:block z-40 backdrop-blur-md">
+                        <span className="text-[10px] text-amber-500 block uppercase tracking-wider mb-0.5">Insígnia Oficial</span>
                         {badge.title}
                       </div>
                     </a>
@@ -156,21 +229,35 @@ export function Hero() {
             {/* Lado Direito: Dados da Ficha + Redes Sociais */}
             <div className="flex w-full flex-col justify-between gap-6 self-stretch">
               
-              <dl className="grid w-full grid-cols-[100px_1fr] gap-x-4 gap-y-3 font-mono text-sm sm:grid-cols-[110px_1fr]">
-                <dt className="font-bold tracking-wider text-amber-500/90">NOME</dt>
-                <dd className="font-semibold text-bone sm:text-base">Weriton Luis Petreca</dd>
-                
-                <dt className="font-bold tracking-wider text-amber-500/90">CLASSE</dt>
-                <dd className="font-semibold text-bone sm:text-base">Back-End Engineer · Java · Python · AWS</dd>
-                
-                <dt className="font-bold tracking-wider text-amber-500/90">ORIGEM</dt>
-                <dd className="font-semibold text-bone sm:text-base">Poços de Caldas, MG</dd>
-              </dl>
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="font-mono text-[11px] font-bold tracking-[0.25em] text-ember uppercase flex items-center gap-1.5">
+                    <span>⚔️</span> FICHA DO ENGENHEIRO · CLASSE BACK-END
+                  </span>
+                </div>
+
+                <dl className="grid w-full grid-cols-[100px_1fr] gap-x-4 gap-y-3 font-mono text-sm sm:grid-cols-[110px_1fr]">
+                  <dt className="font-bold tracking-wider text-amber-500/90">NOME</dt>
+                  <dd className="font-semibold text-bone sm:text-base">Weriton Luis Petreca</dd>
+                  
+                  <dt className="font-bold tracking-wider text-amber-500/90">CLASSE</dt>
+                  <dd className="font-semibold text-bone sm:text-base">Back-End Engineer · Java · Python · AWS</dd>
+                  
+                  <dt className="font-bold tracking-wider text-amber-500/90">ORIGEM</dt>
+                  <dd className="font-semibold text-bone sm:text-base">Poços de Caldas, MG</dd>
+
+                  <dt className="font-bold tracking-wider text-amber-500/90">STATUS</dt>
+                  <dd className="font-semibold text-emerald-400 sm:text-base flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Ativo para Novos Contratos
+                  </dd>
+                </dl>
+              </div>
 
               {/* Redes e Contato Alinhadas à Direita */}
-              <div className="flex flex-col items-end gap-2.5 border-t border-forge-700/50 pt-4">
-                <span className="font-mono text-xs font-bold tracking-widest uppercase text-steel/80">
-                  CONEXÕES & PERFIS
+              <div className="flex flex-col items-end gap-2.5 border-t border-forge-700/60 pt-4">
+                <span className="font-mono text-xs font-bold tracking-widest uppercase text-steel/80 flex items-center gap-1.5">
+                  <span>📜</span> CONEXÕES & PERFIS
                 </span>
                 
                 <div className="flex items-center gap-2.5">
@@ -193,38 +280,43 @@ export function Hero() {
             </div>
 
           </div>
-        </div>
+        </motion.div>
 
-        {/* Headline Principal */}
-        <h1 className="font-display text-4xl font-bold leading-tight text-bone sm:text-5xl lg:text-6xl">
-          Construo sistemas resilientes e escaláveis para a nuvem
-          <span className="text-ember">
-            {" "}
-            — porque falhar não é uma opção.
-          </span>
-        </h1>
+        {/* Headline Principal com Gradiente Forjado */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl text-bone">
+            Construo sistemas resilientes e escaláveis para a nuvem
+            <span className="text-forged-ember block sm:inline">
+              {" "}— porque falhar não é uma opção.
+            </span>
+          </h1>
 
-        {/* Descrição */}
-        <p className="mt-6 max-w-3xl text-lg sm:text-xl leading-relaxed text-slate-300">
-          Desenvolvedor Back-End (Java/Python), 2x AWS certificado (Developer Associate, Cloud Practitioner) e MongoDB Associate Developer, em
-          transição de carreira da Engenharia Ambiental para arquitetura de software,
-          trazendo a mesma disciplina operacional para sistemas distribuídos e nuvem.
-        </p>
+          {/* Descrição */}
+          <p className="mt-6 max-w-3xl text-lg sm:text-xl leading-relaxed text-slate-300">
+            Desenvolvedor Back-End (Java/Python), 2x AWS certificado (Developer Associate, Cloud Practitioner) e MongoDB Associate Developer, em
+            transição de carreira da Engenharia Ambiental para arquitetura de software,
+            trazendo a mesma disciplina operacional para sistemas distribuídos e nuvem.
+          </p>
 
-        {/* Botões Principais com Motion (Hover Lift + Ember Glow + Click Press) */}
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <div className="transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(234,88,12,0.4)] active:translate-y-0">
-            <Button href="#projetos" variant="primary">
-              Ver projetos
-            </Button>
+          {/* Botões Principais com Efeito Forja / Brasa */}
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(210,69,31,0.5)] active:translate-y-0">
+              <Button href="#projetos" variant="primary">
+                <span>⚔️</span> Ver quadro de contratos
+              </Button>
+            </div>
+            
+            <div className="transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] active:translate-y-0">
+              <Button href="/cv-weriton-petreca.pdf" variant="secondary" download>
+                <span>📜</span> Baixar CV
+              </Button>
+            </div>
           </div>
-          
-          <div className="transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] active:translate-y-0">
-            <Button href="/cv-weriton-petreca.pdf" variant="secondary" download>
-              Baixar CV
-            </Button>
-          </div>
-        </div>
+        </motion.div>
 
       </div>
     </section>

@@ -78,8 +78,8 @@ export function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       
-      {/* 🍯 ARMADILHA HONEYPOT (Totalmente invisível para humanos e leitores de tela) */}
-      <div className="hidden" aria-hidden="true">
+      {/* 🍯 ARMADILHA HONEYPOT (Posicionado fora da tela para capturar spambots sem afetar humanos) */}
+      <div className="absolute -left-[9999px] opacity-0 pointer-events-none -z-50" aria-hidden="true">
         <label htmlFor="website_hp">Não preencha este campo se for humano</label>
         <input
           id="website_hp"
