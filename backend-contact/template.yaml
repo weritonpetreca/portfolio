@@ -8,6 +8,12 @@ Parameters:
     Description: E-mail remetente/destinatário para o formulário (Injetado via GitHub Secrets no deploy)
     NoEcho: true # Oculta o valor nos logs de visualização do CloudFormation
 
+  TurnstileSecretKey:
+    Type: String
+    Default: ""
+    Description: Chave Secreta do Cloudflare Turnstile (Injetado via GitHub Secrets no deploy)
+    NoEcho: true
+
 Resources:
   # =================================================================
   # 1. Recurso SES - Identidade de E-mail
@@ -57,6 +63,7 @@ Resources:
       Environment:
         Variables:
           VERIFIED_EMAIL_SENDER: !Ref VerifiedEmailSender
+          TURNSTILE_SECRET_KEY: !Ref TurnstileSecretKey
 
       # DevSecOps: Menor privilégio estrito apontando APENAS para a ARN da identidade SES
       Policies:

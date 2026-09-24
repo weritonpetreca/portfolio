@@ -100,7 +100,7 @@ jobs:
           sam deploy \
             --config-file samconfig.toml \
             --s3-bucket ${{ env.SAM_ARTIFACT_BUCKET }} \
-            --parameter-overrides VerifiedEmailSender="${{ secrets.VERIFIED_EMAIL_SENDER }}" \
+            --parameter-overrides VerifiedEmailSender="${{ secrets.VERIFIED_EMAIL_SENDER }}" TurnstileSecretKey="${{ secrets.TURNSTILE_SECRET_KEY }}" \
             --no-fail-on-empty-changeset
 
   # =================================================================
@@ -142,6 +142,8 @@ jobs:
         run: npm run test
 
       - name: Build Production Bundle (Vite)
+        env:
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.TURNSTILE_SITE_KEY }}
         run: npm run build
 
       # 1. Sincroniza apenas os pacotes compilados com HASH (dist/assets/*)

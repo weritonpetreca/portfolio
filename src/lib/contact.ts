@@ -4,6 +4,10 @@ export interface ContactPayload {
   message: string;
   /** Campo Honeypot opcional para captura de bots de spam. */
   website_hp?: string;
+  /** Token criptográfico do Cloudflare Turnstile para validação de humano na borda. */
+  turnstile_token?: string;
+  /** Timestamp de carregamento do formulário para armadilha de velocidade (Time Trap). */
+  form_timestamp?: number;
 }
 
 export interface SendResult {

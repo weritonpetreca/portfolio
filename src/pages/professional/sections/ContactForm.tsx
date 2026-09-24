@@ -1,5 +1,6 @@
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import { sendContactMessage } from "../../../lib/contact.ts";
+import { TurnstileWidget } from "../../../components/ui/TurnstileWidget.tsx";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -17,6 +18,8 @@ export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [messageText, setMessageText] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
+  const formLoadedAt = useRef<number>(Date.now());
 
   const currentLength = messageText.length;
   const isNearLimit = currentLength >= MAX_MESSAGE_LENGTH - 200;
@@ -40,6 +43,8 @@ export function ContactForm() {
       message: messageText.trim(),
       // Honeypot: Se um bot preencher este campo no DOM, ele é capturado aqui
       website_hp: String(data.get("website_hp") ?? "").trim(),
+      turnstile_token: turnstileToken,
+      form_timestamp: formLoadedAt.current,
     });
 
     if (result.ok) {
@@ -163,6 +168,12 @@ export function ContactForm() {
           <span>{errorMessage}</span>
         </div>
       )}
+
+      {/* Verificação Inteligente Anti-Bot (Cloudflare Turnstile) */}
+      <TurnstileWidget
+        onVerify={(token) => setTurnstileToken(token)}
+        onExpire={() => setTurnstileToken("")}
+      />
 
       <div>
         <button
