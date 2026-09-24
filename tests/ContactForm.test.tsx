@@ -33,12 +33,14 @@ describe("ContactForm", () => {
     fireEvent.click(screen.getByRole("button", { name: /enviar mensagem/i }));
 
     await waitFor(() => {
-      expect(contactLib.sendContactMessage).toHaveBeenCalledWith({
-        name: "Geralt de Rívia",
-        email: "geralt@kaermorhen.com",
-        message: "Preciso de um contrato de caça.",
-        website_hp: "", // Honeypot enviado como string vazia para usuários legítimos
-      });
+      expect(contactLib.sendContactMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Geralt de Rívia",
+          email: "geralt@kaermorhen.com",
+          message: "Preciso de um contrato de caça.",
+          website_hp: "", // Honeypot enviado como string vazia para usuários legítimos
+        })
+      );
     });
 
     expect(
@@ -71,12 +73,14 @@ describe("ContactForm", () => {
     fireEvent.click(screen.getByRole("button", { name: /enviar mensagem/i }));
 
     await waitFor(() => {
-      expect(contactLib.sendContactMessage).toHaveBeenCalledWith({
-        name: "Bot Spam",
-        email: "bot@spam.com",
-        message: "Compre produtos aqui",
-        website_hp: "http://link-malicioso.com",
-      });
+      expect(contactLib.sendContactMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Bot Spam",
+          email: "bot@spam.com",
+          message: "Compre produtos aqui",
+          website_hp: "http://link-malicioso.com",
+        })
+      );
     });
   });
 

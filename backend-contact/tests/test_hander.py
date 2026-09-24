@@ -114,3 +114,80 @@ def test_lambda_handler_prevents_stacktrace_leak_on_exception():
         # Valida o contrato real da sua API
         assert "error" in body
         assert body["error"] == "Erro interno no servidor."
+
+
+def test_lambda_handler_time_trap_silent_drop():
+    """Anti-Spam/Time-Trap: se o formulário for preenchido em menos de 2.5s por um bot, descarta silenciosamente."""
+    import time
+    now_ms = int(time.time() * 1000)
+    # Simula envio 500ms após carregar a página (comportamento de bot automatizado)
+    event = {
+        "body": json.dumps({
+            "name": "Fast Bot",
+            "email": "fastbot@spam.com",
+            "message": "Mensagem gerada instantaneamente por script.",
+            "form_timestamp": now_ms - 500
+        })
+    }
+
+    with patch("src.app.ses_client.send_email") as mock_ses:
+        response = lambda_handler(event, None)
+        body = json.loads(response["body"])
+
+        assert response["statusCode"] == 200
+        assert body["ok"] is True
+        assert not mock_ses.called
+
+
+def test_lambda_handler_turnstile_success():
+    """DevSecOps/Turnstile: quando configurado e com token válido, o e-mail é enviado."""
+    event = {
+        "requestContext": {
+            "http": {"sourceIp": "203.0.113.195"}
+        },
+        "body": json.dumps({
+            "name": "Ciri",
+            "email": "ciri@cintra.com",
+            "message": "Encontrei uma pista importante.",
+            "turnstile_token": "valid-token-from-cf"
+        })
+    }
+
+    with patch.dict("os.environ", {"TURNSTILE_SECRET_KEY": "0x4AAAAAA-fake-secret"}), \
+         patch("src.app.verify_turnstile", return_value=True) as mock_verify, \
+         patch("src.app.ses_client.send_email") as mock_ses:
+
+        mock_ses.return_value = {"MessageId": "msg-999"}
+        response = lambda_handler(event, None)
+        body = json.loads(response["body"])
+
+        assert response["statusCode"] == 200
+        assert body["ok"] is True
+        assert mock_verify.called
+        assert mock_ses.called
+
+
+def test_lambda_handler_turnstile_rejection():
+    """DevSecOps/Turnstile: token inválido ou ausente deve retornar 400 Bad Request se a secret estiver ativa."""
+    event = {
+        "requestContext": {
+            "http": {"sourceIp": "203.0.113.195"}
+        },
+        "body": json.dumps({
+            "name": "Imlerith",
+            "email": "imlerith@wildhunt.com",
+            "message": "Ataque da Caçada Selvagem.",
+            "turnstile_token": "invalid-token"
+        })
+    }
+
+    with patch.dict("os.environ", {"TURNSTILE_SECRET_KEY": "0x4AAAAAA-fake-secret"}), \
+         patch("src.app.verify_turnstile", return_value=False), \
+         patch("src.app.ses_client.send_email") as mock_ses:
+
+        response = lambda_handler(event, None)
+        body = json.loads(response["body"])
+
+        assert response["statusCode"] == 400
+        assert "Turnstile" in body["error"]
+        assert not mock_ses.called

@@ -43,6 +43,31 @@ html {
 
 body {
   font-family: var(--font-body);
+  background-color: var(--color-forge-950);
+  color: var(--color-bone);
+  overflow-x: hidden;
+}
+
+/* Seleção temática de texto: brasa e pergaminho */
+::selection {
+  background-color: rgba(210, 69, 31, 0.4);
+  color: #fff;
+}
+
+/* Scrollbar com tema Forja/Medieval */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #171310;
+}
+::-webkit-scrollbar-thumb {
+  background: #423830;
+  border-radius: 4px;
+  border: 1px solid rgba(210, 69, 31, 0.3);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d2451f;
 }
 
 /* Estado de foco visível — acessibilidade (RNF-02), não decoração */
@@ -51,11 +76,40 @@ body {
   outline-offset: 2px;
 }
 
-/* Textura sutil de "metal envelhecido" — grão muito discreto, só pra tirar
-   a chapadura de um dark-mode liso. Em opacidade baixa o suficiente pra
-   nunca atrapalhar leitura (RNF-01/02 continuam valendo mesmo com clima). */
+/* Textura sutil de "metal envelhecido" — grão muito discreto */
 .texture-forged {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* Títulos Forjados: Gradientes de Metal e Ouro Antigo */
+.text-forged-gold {
+  background: linear-gradient(135deg, #ede6d9 0%, #fcd34d 45%, #b45309 85%, #ede6d9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(210, 69, 31, 0.3));
+}
+
+.text-forged-steel {
+  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+}
+
+.text-forged-ember {
+  background: linear-gradient(135deg, #fdba74 0%, #f97316 50%, #dc2626 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(234, 88, 12, 0.4));
+}
+
+/* Brilhos Volumétricos e Radiais de Tocha / Forja */
+.glow-torch-ambient {
+  background: radial-gradient(circle at 50% 20%, rgba(210, 69, 31, 0.15) 0%, rgba(245, 158, 11, 0.05) 40%, transparent 70%);
+}
+
+.glow-card-active {
+  box-shadow: 0 0 25px -5px rgba(234, 88, 12, 0.25), inset 0 1px 1px 0 rgba(251, 191, 36, 0.15);
 }
 
 .hover-lift {
@@ -75,3 +129,4 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+

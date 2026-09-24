@@ -41,6 +41,37 @@ export const projects: Project[] = [
     repoUrl: "https://github.com/weritonpetreca/credi-facil-idp",
   },
   {
+    id: "korp-erp-microsservicos",
+    title: "Korp ERP — Microsserviços & IA",
+    featured: false,
+    mission:
+      "Construir um ecossistema de microsserviços de alto desempenho para gestão de estoque e faturamento, garantindo controle rigoroso de concorrência, idempotência transacional e assistência inteligente com IA Generativa.",
+    strategy:
+      "Arquitetura distribuída em C# e .NET 8 com Clean Architecture e SOLID. O microsserviço de Estoque integra o Google Gemini Flash como Copilot de Supply Chain e o Faturamento orquestra notas fiscais com resiliência via Polly v8 (Circuit Breaker e Retry com Exponential Backoff). Utiliza Amazon DynamoDB com Single-Table Design e concorrência otimista, frontend SPA em Angular (RxJS) e pirâmide de testes com Testcontainers.",
+    highlights: [
+      "Resiliência síncrona entre microsserviços via Polly v8 (Circuit Breaker e Exponential Backoff) evitando propagação de falhas em cascata.",
+      "Garantia transacional com concorrência otimista (DynamoDB ConditionExpression via Version) e chaves de idempotência (X-Idempotency-Key via IEndpointFilter).",
+      "Modelagem NoSQL Single-Table Design no Amazon DynamoDB isolando notas fiscais, produtos e registros de idempotência sob a mesma tabela.",
+      "Copilot de Supply Chain integrado nativamente com IA Generativa (Google Gemini Flash) para análise semântica de saldos em tempo real.",
+      "Pirâmide de testes automatizados com Testcontainers (subindo instâncias reais de DynamoDB via Docker nos testes de integração).",
+    ],
+    techTags: [
+      "C#",
+      ".NET 8",
+      "Microsserviços",
+      "Clean Architecture",
+      "Polly (Circuit Breaker)",
+      "Amazon DynamoDB",
+      "Single-Table Design",
+      "Google Gemini IA",
+      "Angular",
+      "RxJS",
+      "Docker",
+      "Testcontainers",
+    ],
+    repoUrl: "https://github.com/weritonpetreca/Korp_Teste_Weriton",
+  },
+  {
     id: "vivaldi-bank",
     title: "Vivaldi Bank",
     featured: false,

@@ -1,5 +1,7 @@
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import { sendContactMessage } from "../../../lib/contact.ts";
+import { TurnstileWidget } from "../../../components/ui/TurnstileWidget.tsx";
+import { PrivacyModal } from "../../../components/ui/PrivacyModal.tsx";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -17,6 +19,9 @@ export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [messageText, setMessageText] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const formLoadedAt = useRef<number>(Date.now());
 
   const currentLength = messageText.length;
   const isNearLimit = currentLength >= MAX_MESSAGE_LENGTH - 200;
@@ -40,6 +45,8 @@ export function ContactForm() {
       message: messageText.trim(),
       // Honeypot: Se um bot preencher este campo no DOM, ele é capturado aqui
       website_hp: String(data.get("website_hp") ?? "").trim(),
+      turnstile_token: turnstileToken,
+      form_timestamp: formLoadedAt.current,
     });
 
     if (result.ok) {
@@ -78,8 +85,8 @@ export function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       
-      {/* 🍯 ARMADILHA HONEYPOT (Totalmente invisível para humanos e leitores de tela) */}
-      <div className="hidden" aria-hidden="true">
+      {/* 🍯 ARMADILHA HONEYPOT (Posicionado fora da tela para capturar spambots sem afetar humanos) */}
+      <div className="absolute -left-[9999px] opacity-0 pointer-events-none -z-50" aria-hidden="true">
         <label htmlFor="website_hp">Não preencha este campo se for humano</label>
         <input
           id="website_hp"
@@ -164,7 +171,13 @@ export function ContactForm() {
         </div>
       )}
 
-      <div>
+      {/* Verificação Inteligente Anti-Bot (Cloudflare Turnstile) */}
+      <TurnstileWidget
+        onVerify={(token) => setTurnstileToken(token)}
+        onExpire={() => setTurnstileToken("")}
+      />
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         <button
           type="submit"
           disabled={status === "submitting"}
@@ -182,7 +195,32 @@ export function ContactForm() {
             </>
           )}
         </button>
+
+        <div className="flex items-center gap-2 font-mono text-[11px] text-steel/60">
+          <span className="text-amber-400">🛡️</span>
+          <span>Desafio Criptográfico & Anti-Bot Ativos</span>
+        </div>
       </div>
+
+      {/* Cláusula de Conformidade e Proteção de Dados (LGPD) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-forge-700/60 pt-4 font-mono text-[11px] text-steel/70">
+        <div className="flex items-center gap-1.5">
+          <span>🔒</span>
+          <span>Dados utilizados exclusivamente para retorno profissional.</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsPrivacyOpen(true)}
+          className="cursor-pointer text-amber-400/90 underline decoration-amber-400/40 underline-offset-4 hover:text-amber-300 transition-colors"
+        >
+          [Declaração de Privacidade & LGPD]
+        </button>
+      </div>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </form>
   );
 }
