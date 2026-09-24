@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router";
+import { PrivacyModal } from "../ui/PrivacyModal.tsx";
 
 const currentYear = new Date().getFullYear();
 
@@ -6,6 +8,7 @@ const currentYear = new Date().getFullYear();
 const PORTFOLIO_REPO_URL = "https://github.com/weritonpetreca/portfolio";
 
 export function Footer() {
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   return (
     <footer className="texture-forged border-t border-forge-700/80 bg-forge-950/90 px-6 py-12 sm:py-16">
       <div className="mx-auto flex max-w-4xl flex-col gap-8 text-slate-300">
@@ -67,6 +70,14 @@ export function Footer() {
             >
               [Código-fonte ↗]
             </a>
+            <span className="hidden sm:inline text-forge-700/80">•</span>
+            <button
+              type="button"
+              onClick={() => setIsPrivacyOpen(true)}
+              className="cursor-pointer text-slate-400 underline decoration-forge-700 underline-offset-4 transition-colors hover:text-amber-400 hover:decoration-amber-400"
+            >
+              Privacidade & LGPD
+            </button>
           </div>
 
           {/* RF-03: ponto de entrada único e discreto para a segunda persona */}
@@ -84,6 +95,11 @@ export function Footer() {
         </div>
 
       </div>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </footer>
   );
 }

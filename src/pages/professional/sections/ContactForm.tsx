@@ -1,6 +1,7 @@
 import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import { sendContactMessage } from "../../../lib/contact.ts";
 import { TurnstileWidget } from "../../../components/ui/TurnstileWidget.tsx";
+import { PrivacyModal } from "../../../components/ui/PrivacyModal.tsx";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -19,6 +20,7 @@ export function ContactForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [messageText, setMessageText] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string>("");
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const formLoadedAt = useRef<number>(Date.now());
 
   const currentLength = messageText.length;
@@ -199,6 +201,26 @@ export function ContactForm() {
           <span>Desafio Criptográfico & Anti-Bot Ativos</span>
         </div>
       </div>
+
+      {/* Cláusula de Conformidade e Proteção de Dados (LGPD) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-forge-700/60 pt-4 font-mono text-[11px] text-steel/70">
+        <div className="flex items-center gap-1.5">
+          <span>🔒</span>
+          <span>Dados utilizados exclusivamente para retorno profissional.</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsPrivacyOpen(true)}
+          className="cursor-pointer text-amber-400/90 underline decoration-amber-400/40 underline-offset-4 hover:text-amber-300 transition-colors"
+        >
+          [Declaração de Privacidade & LGPD]
+        </button>
+      </div>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </form>
   );
 }

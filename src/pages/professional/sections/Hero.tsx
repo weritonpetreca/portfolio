@@ -91,6 +91,7 @@ const SOCIAL_LINKS = [
 
 export function Hero() {
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
   const [tilt, setTilt] = useState({
     rotateX: 0,
     rotateY: 0,
@@ -200,22 +201,33 @@ export function Hero() {
                       href={badge.href}
                       target={badge.isExternal ? "_blank" : undefined}
                       rel={badge.isExternal ? "noopener noreferrer" : undefined}
-                      title={badge.title}
-                      className="group relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-md border border-forge-900 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_14px_rgba(245,158,11,0.6),inset_0_0_8px_rgba(245,158,11,0.3)]"
+                      aria-label={`Ver credencial oficial: ${badge.title}`}
+                      onMouseEnter={() => setHoveredBadge(badge.title)}
+                      onMouseLeave={() => setHoveredBadge(null)}
+                      className="group relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-md border border-forge-900 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] transition-all duration-300 hover:border-amber-400 hover:scale-105 hover:shadow-[0_0_14px_rgba(245,158,11,0.6),inset_0_0_8px_rgba(245,158,11,0.3)]"
                     >
                       <img
                         src={badge.image}
                         alt={badge.title}
-                        className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-115"
+                        className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110"
                       />
-                      
-                      {/* Tooltip em cima da badge */}
-                      <div className="pointer-events-none absolute bottom-full mb-3 hidden w-48 rounded-md border border-amber-600/40 bg-forge-950/95 p-2 text-center font-mono text-xs text-bone shadow-2xl group-hover:block z-40 backdrop-blur-md">
-                        <span className="text-[10px] text-amber-500 block uppercase tracking-wider mb-0.5">Insígnia Oficial</span>
-                        {badge.title}
-                      </div>
                     </a>
                   ))}
+                </div>
+
+                {/* Micro-painel de Insígnia Ativa (Sem sobrepor ou cortar o retrato) */}
+                <div className="mt-2 flex h-5 w-full items-center justify-center text-center">
+                  <p className="font-mono text-[10.5px] uppercase tracking-wider transition-all duration-200">
+                    {hoveredBadge ? (
+                      <span className="font-bold text-amber-400 flex items-center justify-center gap-1">
+                        <span>🏆</span>
+                        <span className="truncate max-w-[155px]">{hoveredBadge}</span>
+                        <span className="text-[9px] text-amber-500">↗</span>
+                      </span>
+                    ) : (
+                      <span className="text-steel/60">3 Insígnias · Toque p/ abrir</span>
+                    )}
+                  </p>
                 </div>
 
               </div>

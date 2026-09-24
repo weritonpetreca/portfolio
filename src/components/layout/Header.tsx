@@ -43,33 +43,23 @@ export function Header() {
           </span>
         </a>
 
-        {/* Menu de Navegação Rápida (Desktop / Tablet) */}
-        <nav className="hidden md:flex items-center gap-4 lg:gap-6 font-mono text-xs font-bold uppercase tracking-wider text-steel">
+        {/* Menu de Navegação Rápida */}
+        <nav className="flex items-center gap-3 sm:gap-6 font-mono text-xs font-bold uppercase tracking-wider text-steel">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.label}
               href={item.href}
               onClick={(e) => handleScroll(e, item.href)}
-              className="transition-all duration-200 hover:-translate-y-0.5 hover:text-amber-400"
+              className={`transition-all duration-200 hover:-translate-y-0.5 hover:text-amber-400 ${
+                item.label === "Contato"
+                  ? "rounded-md border border-amber-600/50 bg-forge-900/90 px-3 py-1.5 text-amber-400 hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                  : "hidden sm:inline-block"
+              }`}
             >
               {item.label}
             </a>
           ))}
         </nav>
-
-        {/* Status Indicador Pulsante (Com margem para não encostar na navegação) */}
-        <div className="flex shrink-0 items-center gap-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-mono text-xs shadow-sm ml-4 lg:ml-6">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          <span className="hidden sm:inline font-semibold text-slate-200 uppercase tracking-wider text-[11px]">
-            Disponível para Oportunidades
-          </span>
-          <span className="sm:hidden font-bold text-emerald-400 text-[11px] tracking-wider">
-            DISPONÍVEL
-          </span>
-        </div>
 
       </div>
     </header>
