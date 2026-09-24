@@ -1,55 +1,124 @@
+import { useState } from "react";
 import { Link } from "react-router";
 import { Seo } from "../../components/layout/Seo.tsx";
+import {
+  CloudwardensHeader,
+  type CloudwardensTab,
+} from "./components/CloudwardensHeader";
+import { DeckShowcase } from "./components/DeckShowcase";
+import { DuelArena } from "./components/DuelArena";
+import { OracleSimulado } from "./components/OracleSimulado";
 
-/**
- * Fase 0 entrega só o portal (framing + volta para o profissional) —
- * o showcase de projetos temáticos e o jogo de cartas entram nas
- * Fases 2 e 3 (ver roadmap no SRS, seção 14).
- *
- * Note a paleta diferente (realm-950, realm-parchment, realm-ember,
- * font-realm-display) e o fato de que isto vive dentro de uma div própria,
- * não do <body> global — é assim que garantimos que a identidade visual
- * desta persona não vaza para a página profissional e vice-versa (RF-19).
- */
 export function WitcherRealmPage() {
+  const [activeTab, setActiveTab] = useState<CloudwardensTab>("deck");
+
   return (
-    <div className="min-h-screen bg-realm-950 px-6 py-24 text-realm-parchment">
+    <div className="min-h-screen bg-forge-950 text-bone selection:bg-amber-500/30 selection:text-amber-200">
       <Seo
-        title="Witcher Realm — Weriton Petreca"
-        description="Extensão pessoal e experimental do portfólio de Weriton Petreca, explorando arquitetura de software através do universo The Witcher."
+        title="Cloudwardens — O Domínio de Âmbar | Jogo de Cartas & Simulados AWS CLF-C02"
+        description="Aprenda arquitetura de nuvem AWS e estude para a certificação AWS Certified Cloud Practitioner (CLF-C02) através de um jogo tático de cartas e simulados interativos no universo Cloudwardens."
         path="/witcher-realm"
         favicon="/witcher-favicon.ico"
       />
 
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="font-mono text-xs tracking-[0.3em] text-realm-ember uppercase">
-          Você saiu da trilha principal
-        </p>
+      {/* Header com Navegação Tática */}
+      <CloudwardensHeader activeTab={activeTab} onTabChange={setActiveTab} />
 
-        <h1 className="font-realm-display mt-4 text-4xl italic text-realm-parchment">
-          Witcher Realm
-        </h1>
+      {/* Hero Banner Imersivo */}
+      <section className="relative overflow-hidden border-b border-forge-700/60 bg-gradient-to-b from-forge-900 via-forge-950 to-forge-950 py-12 px-4 sm:px-6">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.12),transparent_70%)] pointer-events-none" />
+        
+        <div className="relative mx-auto max-w-5xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-600/40 bg-amber-950/60 px-3.5 py-1 text-xs font-mono text-amber-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>UNIVERSO ORIGINAL · APRENDIZADO GAMIFICADO DE CLOUD</span>
+          </div>
 
-        <p className="mt-8 text-balance leading-relaxed text-realm-parchment/80">
-          Esta é uma extensão pessoal e experimental do meu portfólio, onde uso
-          referências desse universo para explorar conceitos de arquitetura de
-          software e, ocasionalmente, programar por puro prazer. Se você chegou até
-          aqui vindo de uma vaga, ótimo sinal: você também vai ver como eu penso e
-          aprendo fora do horário comercial.
-        </p>
+          <h2 className="mt-4 font-display text-3xl sm:text-5xl font-bold tracking-tight text-bone">
+            O Domínio de Âmbar: <span className="text-forged-gold">Cloudwardens</span>
+          </h2>
 
-        <p className="mt-4 text-sm text-realm-parchment/50">
-          (Em construção — Fases 2 e 3 trazem os projetos temáticos e um pequeno jogo
-          de cartas original.)
-        </p>
+          <p className="mx-auto mt-4 max-w-2xl font-sans text-sm sm:text-base text-slate-300 leading-relaxed">
+            Nas fronteiras da computação em nuvem, anomalias e gargalos ameaçam a estabilidade dos sistemas. 
+            Empunhe os serviços gerenciados da <strong>AWS</strong> como feitiços arquiteturais, proteja sua fortaleza em duelos táticos e domine o conteúdo da certificação <strong>AWS Certified Cloud Practitioner (CLF-C02)</strong> com simulados reais e justificativas detalhadas.
+          </p>
 
-        <Link
-          to="/"
-          className="mt-10 inline-block font-mono text-sm text-realm-ember hover:underline"
-        >
-          ← Voltar para a página profissional
-        </Link>
-      </div>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 font-mono text-xs text-steel">
+            <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
+              ⚡ 12 Cartas Base
+            </span>
+            <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
+              ⚔️ Arena de Combate Tático
+            </span>
+            <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
+              📜 Simulado CLF-C02 com Justificativas
+            </span>
+            <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
+              🏆 Provas de Mestria (Side Quests)
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Conteúdo Principal Dinâmico por Aba */}
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
+        {activeTab === "deck" && <DeckShowcase />}
+        {activeTab === "arena" && <DuelArena />}
+        {activeTab === "oracle" && <OracleSimulado />}
+      </main>
+
+      {/* Rodapé do Universo & Conformidade */}
+      <footer className="mt-20 border-t border-forge-800 bg-black/80 py-10 px-4 sm:px-6 font-mono text-xs text-steel">
+        <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-center md:text-left">
+            <p className="font-bold text-bone">
+              CLOUDWARDENS · Criado por Weriton Petreca
+            </p>
+            <p className="mt-1 max-w-xl text-[11px] text-steel/80">
+              Projeto autoral e independente que combina design dark fantasy, mecânicas táticas de cartas e pedagogia imersiva para formação e certificação de engenheiros de nuvem.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            <button
+              type="button"
+              onClick={() => setActiveTab("deck")}
+              className="hover:text-amber-400 cursor-pointer"
+            >
+              Grimório
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => setActiveTab("arena")}
+              className="hover:text-amber-400 cursor-pointer"
+            >
+              Arena
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => setActiveTab("oracle")}
+              className="hover:text-amber-400 cursor-pointer"
+            >
+              Simulado
+            </button>
+            <span>•</span>
+            <Link
+              to="/"
+              className="text-amber-500 hover:text-amber-400 font-bold"
+            >
+              Voltar ao Portfólio Profissional →
+            </Link>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-6xl mt-6 pt-6 border-t border-forge-800/60 text-[10px] text-steel/60 text-center leading-relaxed">
+          <p>
+            <strong>Aviso de Propriedade Intelectual & Fair Use:</strong> Cloudwardens é uma criação original e independente. Amazon Web Services, AWS, Amazon S3, AWS Lambda, Amazon EC2, Amazon DynamoDB, Amazon CloudFront e AWS IAM são marcas registradas da Amazon.com, Inc. ou de suas afiliadas. O uso desses termos ocorre sob uso nominativo estritamente para fins educacionais de preparação para exames.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
