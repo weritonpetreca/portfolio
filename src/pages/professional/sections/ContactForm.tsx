@@ -175,7 +175,7 @@ export function ContactForm() {
         onExpire={() => setTurnstileToken("")}
       />
 
-      <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
         <button
           type="submit"
           disabled={status === "submitting"}
@@ -193,6 +193,11 @@ export function ContactForm() {
             </>
           )}
         </button>
+
+        <div className="flex items-center gap-2 font-mono text-[11px] text-steel/60">
+          <span className="text-amber-400">🛡️</span>
+          <span>Desafio Criptográfico & Anti-Bot Ativos</span>
+        </div>
       </div>
     </form>
   );

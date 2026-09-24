@@ -7,6 +7,7 @@ interface TurnstileWidgetProps {
   onVerify: (token: string) => void;
   onExpire?: () => void;
   onError?: () => void;
+  appearance?: "always" | "interaction-only" | "execute";
   className?: string;
 }
 
@@ -18,6 +19,7 @@ declare global {
         options: {
           sitekey: string;
           theme?: "light" | "dark" | "auto";
+          appearance?: "always" | "interaction-only" | "execute";
           callback: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
@@ -34,6 +36,7 @@ export function TurnstileWidget({
   onVerify,
   onExpire,
   onError,
+  appearance = "always",
   className = "",
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -60,6 +63,7 @@ export function TurnstileWidget({
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: siteKey,
         theme: "dark",
+        appearance: appearance,
         callback: (token: string) => {
           onVerify(token);
         },
@@ -113,8 +117,11 @@ export function TurnstileWidget({
   if (import.meta.env.MODE === "test") return null;
 
   return (
-    <div className={`my-2 flex flex-col items-center sm:items-start ${className}`}>
-      <div ref={containerRef} className="min-h-[65px]" />
+    <div className={`my-1 flex flex-col items-center sm:items-start ${className}`}>
+      <div
+        ref={containerRef}
+        className="overflow-hidden rounded-md transition-all duration-300"
+      />
       {!isReady && (
         <span className="font-mono text-[11px] text-steel/60">
           Iniciando verificação de segurança Cloudflare...
