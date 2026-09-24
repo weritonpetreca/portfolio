@@ -10,34 +10,39 @@ interface SkillGroup {
 
 const skillGroups: SkillGroup[] = [
   { 
-    label: "Back-End", 
+    label: "Back-End & Linguagens", 
     icon: "⚔️",
-    items: ["Java 21", "Spring Boot", "Gradle", "Python"] 
+    items: ["Java 21", "Spring Boot", "C# / .NET 8", "Python", "Gradle"] 
   },
   { 
     label: "Cloud & DevOps", 
     icon: "☁️",
-    items: ["AWS Lambda", "DynamoDB", "S3", "IAM", "CDK", "Terraform", "GitHub Actions", "Docker"],
+    items: ["AWS Lambda", "DynamoDB", "S3", "IAM", "CDK", "Terraform", "Docker", "GitHub Actions"] 
   },
   { 
     label: "Dados & Bancos", 
     icon: "🗄️",
-    items: ["PostgreSQL", "DynamoDB", "MongoDB"] 
+    items: ["PostgreSQL", "DynamoDB (Single-Table)", "MongoDB", "Flyway"] 
   },
   { 
-    label: "Arquitetura & Design", 
+    label: "Arquitetura & Resiliência", 
     icon: "🏛️",
-    items: ["Hexagonal", "Microsserviços", "Circuit Breaker"] 
+    items: ["Arquitetura Hexagonal", "Clean Architecture", "Microsserviços", "Circuit Breaker (Polly / Resilience4j)", "Idempotência"] 
   },
   { 
     label: "Testes & Qualidade", 
     icon: "🧪",
-    items: ["JUnit 5", "Mockito", "TDD", "JaCoCo", "Pytest", "SonarQube"] 
+    items: ["JUnit 5", "Mockito", "Testcontainers", "TDD", "Pytest", "ArchUnit", "SonarQube"] 
+  },
+  { 
+    label: "Inteligência Artificial (GenAI)", 
+    icon: "⚡",
+    items: ["Amazon Bedrock", "Amazon Nova", "Google Gemini IA", "Engenharia de Prompt"] 
   },
   { 
     label: "Frontend (Em expansão)", 
     icon: "🎨",
-    items: ["React", "TypeScript", "Vite", "Tailwind CSS"] 
+    items: ["React", "TypeScript", "Angular", "Vite", "Tailwind CSS"] 
   },
   { 
     label: "Segurança & DevSecOps", 
@@ -45,7 +50,8 @@ const skillGroups: SkillGroup[] = [
     fullWidth: true,
     items: [
       "AWS IAM", 
-      "OAuth2 / JWT", 
+      "OAuth2 / OIDC", 
+      "JWT", 
       "SonarQube (SAST)", 
       "OWASP Dependency-Check", 
       "AWS Secrets Manager", 

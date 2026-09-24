@@ -74,7 +74,7 @@ export function About() {
               </p>
 
               <p>
-                Meu objetivo atual é atuar como <strong className="font-semibold text-bone">Desenvolvedor Back-End / Cloud AWS</strong>, evoluindo continuamente rumo à especialização em <strong className="font-semibold text-bone">DevSecOps</strong> — aplicando a mesma exigência de confiabilidade e segurança na construção de software e pipelines automatizados.
+                Meu objetivo atual é atuar como <strong className="font-semibold text-bone">Engenheiro de Software Back-End / Cloud</strong>, desenvolvendo sistemas resilientes e escaláveis em ecossistemas modernos (Java, C#/.NET, Python, AWS) e evoluindo continuamente rumo a <strong className="font-semibold text-bone">DevSecOps e Arquiteturas Distribuídas</strong> — aplicando a mesma exigência de confiabilidade e segurança na construção de software e pipelines automatizados.
               </p>
             </div>
 

@@ -1,7 +1,6 @@
 import { useState, useRef, type MouseEvent } from "react";
 import { motion } from "motion/react";
 import { Button } from "../../../components/ui/Button.tsx";
-import { EmbersCanvas } from "../../../components/ui/EmbersCanvas.tsx";
 
 const EQUIPPED_BADGES = [
   {
@@ -128,9 +127,6 @@ export function Hero() {
 
   return (
     <section className="texture-forged relative overflow-hidden px-6 py-20 lg:py-24">
-      {/* Sistema de Partículas de Brasa Atmosférica */}
-      <EmbersCanvas count={35} />
-
       {/* Brilho Volumétrico Quente de Forja Medieval */}
       <div
         className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 h-[550px] w-[850px] rounded-full glow-torch-ambient blur-3xl opacity-75"
@@ -241,7 +237,7 @@ export function Hero() {
                   <dd className="font-semibold text-bone sm:text-base">Weriton Luis Petreca</dd>
                   
                   <dt className="font-bold tracking-wider text-amber-500/90">CLASSE</dt>
-                  <dd className="font-semibold text-bone sm:text-base">Back-End Engineer · Java · Python · AWS</dd>
+                  <dd className="font-semibold text-bone sm:text-base">Back-End Engineer · Cloud & Distributed Systems</dd>
                   
                   <dt className="font-bold tracking-wider text-amber-500/90">ORIGEM</dt>
                   <dd className="font-semibold text-bone sm:text-base">Poços de Caldas, MG</dd>
@@ -297,9 +293,7 @@ export function Hero() {
 
           {/* Descrição */}
           <p className="mt-6 max-w-3xl text-lg sm:text-xl leading-relaxed text-slate-300">
-            Desenvolvedor Back-End (Java/Python), 2x AWS certificado (Developer Associate, Cloud Practitioner) e MongoDB Associate Developer, em
-            transição de carreira da Engenharia Ambiental para arquitetura de software,
-            trazendo a mesma disciplina operacional para sistemas distribuídos e nuvem.
+            Engenheiro de Software Back-End com foco em arquiteturas distribuídas, microsserviços e nuvem AWS (2x certificado: Developer Associate, Cloud Practitioner e MongoDB Associate Developer). Experiência na construção de ecossistemas em Java, C#/.NET e Python, aplicando Clean Architecture, resiliência, concorrência e integração nativa com IA Generativa.
           </p>
 
           {/* Botões Principais com Efeito Forja / Brasa */}
