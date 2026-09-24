@@ -6,7 +6,7 @@ import type { ExamQuestion, QuestTrial } from "../../../data/cloudwardens/types"
 export function OracleSimulado() {
   const [activeSubTab, setActiveSubTab] = useState<"quiz" | "quests">("quiz");
 
-  // Estado do Simulado
+  // Estado do Simulado e Quests
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
@@ -14,8 +14,13 @@ export function OracleSimulado() {
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
   const [activeQuest, setActiveQuest] = useState<QuestTrial | null>(null);
 
-  const currentQ: ExamQuestion = CLOUDWARDENS_QUESTIONS[currentQuestionIndex];
-  const totalQuestions = CLOUDWARDENS_QUESTIONS.length;
+  // Filtra questões se uma quest estiver ativa
+  const activeQuestions: ExamQuestion[] = activeQuest
+    ? CLOUDWARDENS_QUESTIONS.filter((q) => activeQuest.questionIds.includes(q.id))
+    : CLOUDWARDENS_QUESTIONS;
+
+  const currentQ: ExamQuestion = activeQuestions[currentQuestionIndex] || activeQuestions[0];
+  const totalQuestions = activeQuestions.length;
   const passingScorePercentage = 70; // Padrão de aprovação da AWS (700/1000)
 
   const handleSelectOption = (optionId: string) => {
@@ -49,14 +54,33 @@ export function OracleSimulado() {
     setIsQuizCompleted(false);
   };
 
-  const finalPercentage = Math.round((score / totalQuestions) * 100);
+  const handleStartQuest = (quest: QuestTrial) => {
+    setActiveQuest(quest);
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setIsAnswerSubmitted(false);
+    setScore(0);
+    setIsQuizCompleted(false);
+    setActiveSubTab("quiz");
+  };
+
+  const handleExitQuest = () => {
+    setActiveQuest(null);
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setIsAnswerSubmitted(false);
+    setScore(0);
+    setIsQuizCompleted(false);
+  };
+
+  const finalPercentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
   const isApproved = finalPercentage >= passingScorePercentage;
 
   return (
     <div className="space-y-6">
       
       {/* Seletor de Modo: Simulado vs Quests */}
-      <div className="flex items-center justify-between border-b border-forge-700/60 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-forge-700/60 pb-3">
         <div>
           <span className="font-mono text-xs font-bold uppercase tracking-widest text-sky-400 flex items-center gap-1.5">
             <span>📜</span> O ORÁCULO DE CERTIFICAÇÃO · CLF-C02
@@ -69,9 +93,12 @@ export function OracleSimulado() {
         <div className="flex items-center gap-2 font-mono text-xs">
           <button
             type="button"
-            onClick={() => setActiveSubTab("quiz")}
+            onClick={() => {
+              handleExitQuest();
+              setActiveSubTab("quiz");
+            }}
             className={`cursor-pointer rounded px-3 py-1.5 transition-colors ${
-              activeSubTab === "quiz"
+              activeSubTab === "quiz" && !activeQuest
                 ? "border border-sky-500/80 bg-sky-500/20 text-sky-200 font-bold"
                 : "text-steel hover:text-bone hover:bg-forge-900"
             }`}
@@ -99,19 +126,24 @@ export function OracleSimulado() {
             <div>
               {/* Notificação de Quest Ativa */}
               {activeQuest && (
-                <div className="mb-4 flex items-center justify-between rounded-lg border border-amber-600/50 bg-amber-950/40 p-3 font-mono text-xs text-amber-300">
+                <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-amber-600/50 bg-amber-950/40 p-3.5 font-mono text-xs text-amber-300">
                   <div className="flex items-center gap-2">
-                    <span>⚔️</span>
-                    <span>
-                      Quest Ativa: <strong>{activeQuest.title}</strong> — Forje: <strong className="text-amber-400">{activeQuest.rewardCardId}</strong>
-                    </span>
+                    <span className="text-base">⚔️</span>
+                    <div>
+                      <span className="text-[10px] text-amber-400/80 block uppercase tracking-wider">
+                        {activeQuest.chapter}
+                      </span>
+                      <span>
+                        Quest: <strong>{activeQuest.title}</strong> — Recompensa: <strong className="text-amber-400">{activeQuest.rewardCardId}</strong>
+                      </span>
+                    </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setActiveQuest(null)}
-                    className="text-steel hover:text-bone text-[11px] underline cursor-pointer"
+                    onClick={handleExitQuest}
+                    className="self-end sm:self-center text-steel hover:text-bone text-[11px] underline cursor-pointer"
                   >
-                    Voltar ao Simulado Padrão
+                    Voltar ao Simulado Completo
                   </button>
                 </div>
               )}
@@ -178,11 +210,7 @@ export function OracleSimulado() {
               )}
 
               {/* Botões de Ação */}
-              <div className="flex items-center justify-between border-t border-forge-700/60 pt-4">
-                <span className="font-mono text-xs text-steel">
-                  Pontos Atuais: <strong className="text-amber-400">{score}</strong> acertos
-                </span>
-
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-forge-800">
                 {!isAnswerSubmitted ? (
                   <button
                     type="button"
@@ -204,7 +232,7 @@ export function OracleSimulado() {
               </div>
             </div>
           ) : (
-            /* TELA DE RESULTADO DO SIMULADO */
+            /* TELA DE RESULTADO DO SIMULADO OU QUEST */
             <div className="text-center py-6 space-y-6">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-amber-500/60 bg-amber-950/40 text-4xl">
                 {isApproved ? "🏆" : "📜"}
@@ -212,10 +240,18 @@ export function OracleSimulado() {
 
               <div>
                 <span className="font-mono text-xs font-bold uppercase tracking-widest text-amber-500">
-                  {isApproved ? "APROVADO NO TESTE DO ORÁCULO" : "TREINAMENTO INCOMPLETO"}
+                  {isApproved
+                    ? activeQuest
+                      ? "QUEST CONCLUÍDA COM SUCESSO!"
+                      : "APROVADO NO TESTE DO ORÁCULO"
+                    : "TREINAMENTO INCOMPLETO"}
                 </span>
                 <h3 className="mt-2 font-display text-3xl font-bold text-bone">
-                  {isApproved ? "Você demonstrou domínio do Domínio AWS!" : "Continue treinando com o Grimório"}
+                  {isApproved
+                    ? activeQuest
+                      ? `Você forjou com maestria a carta ${activeQuest.rewardCardId}!`
+                      : "Você demonstrou domínio dos Domínios da AWS!"
+                    : "Revise os conceitos e tente novamente"}
                 </h3>
                 <p className="mt-2 font-mono text-sm text-slate-300">
                   Sua pontuação: <strong className="text-amber-400 text-lg">{finalPercentage}%</strong> ({score} de {totalQuestions} questões corretas).
@@ -225,14 +261,26 @@ export function OracleSimulado() {
                 </p>
               </div>
 
-              <div className="pt-4 flex items-center justify-center gap-4">
+              <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
                 <button
                   type="button"
                   onClick={handleRestartQuiz}
                   className="cursor-pointer rounded-md bg-amber-500 px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider text-black hover:bg-amber-400 transition-colors"
                 >
-                  Refazer Simulado 🔄
+                  {activeQuest ? "Refazer Esta Quest 🔄" : "Refazer Simulado 🔄"}
                 </button>
+                {activeQuest && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExitQuest();
+                      setActiveSubTab("quests");
+                    }}
+                    className="cursor-pointer rounded-md border border-forge-700 bg-forge-900 px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider text-steel hover:text-bone hover:border-amber-500 transition-colors"
+                  >
+                    Ver Mais Quests ⚔️
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -260,16 +308,18 @@ export function OracleSimulado() {
               </div>
 
               <div className="mt-4 pt-3 border-t border-forge-700/60 flex items-center justify-between font-mono text-xs">
-                <span className="text-steel">
-                  Recompensa: <strong className="text-amber-400">{quest.rewardCardId}</strong>
-                </span>
+                <div>
+                  <span className="text-steel block text-[11px]">
+                    {quest.questionIds.length} Questões de Exame
+                  </span>
+                  <span className="text-steel text-[11px]">
+                    Recompensa: <strong className="text-amber-400">{quest.rewardCardId}</strong>
+                  </span>
+                </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveQuest(quest);
-                    setActiveSubTab("quiz");
-                  }}
-                  className="rounded border border-amber-600/50 bg-forge-900 px-3 py-1 text-amber-300 hover:border-amber-400 transition-colors cursor-pointer"
+                  onClick={() => handleStartQuest(quest)}
+                  className="rounded border border-amber-600/50 bg-forge-900 px-3.5 py-1.5 text-amber-300 hover:border-amber-400 hover:bg-amber-950/40 transition-colors cursor-pointer font-bold"
                 >
                   Iniciar Quest ⚔️
                 </button>

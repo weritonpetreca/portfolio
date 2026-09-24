@@ -2,15 +2,143 @@ import type { ExamQuestion } from "./types";
 
 export const CLOUDWARDENS_QUESTIONS: ExamQuestion[] = [
   // ==========================================
-  // DOMÍNIO 1: CONCEITOS DE NUVEM (Cloud Concepts)
+  // CAPÍTULO I: ARMAZENAMENTO & DURABILIDADE (S3, Backup)
   // ==========================================
   {
-    id: "q-concepts-1",
+    id: "q-storage-1",
+    domain: "technology",
+    difficulty: "standard",
+    relatedCardId: "guardian-s3",
+    questionText:
+      "Uma organização financeira precisa armazenar documentos fiscais por 7 anos para atender a exigências regulatórias. Os documentos raramente serão acessados após os primeiros 30 dias, mas devem ser retidos com segurança pelo menor custo possível. Qual classe de armazenamento do Amazon S3 é a mais recomendada?",
+    options: [
+      {
+        id: "a",
+        text: "Amazon S3 Standard",
+      },
+      {
+        id: "b",
+        text: "Amazon S3 Glacier Flexible Retrieval (ou Glacier Deep Archive)",
+      },
+      {
+        id: "c",
+        text: "Amazon EBS Provisioned IOPS",
+      },
+      {
+        id: "d",
+        text: "Amazon EFS com acesso padrão",
+      },
+    ],
+    correctOptionId: "b",
+    explanation:
+      "O Amazon S3 Glacier Flexible Retrieval e o S3 Glacier Deep Archive foram projetados especificamente para retenção de longo prazo e arquivamento de dados acessados com pouca frequência, oferecendo os custos de armazenamento por gigabyte mais baixos da AWS com durabilidade de 11 noves (99.999999999%).",
+    examReference: "CLF-C02: Domínio 3 — Classes de Armazenamento do Amazon S3 e Gerenciamento de Ciclo de Vida.",
+  },
+  {
+    id: "q-storage-2",
+    domain: "technology",
+    difficulty: "intro",
+    relatedCardId: "guardian-s3",
+    questionText:
+      "Qual recurso nativo do Amazon S3 impede que arquivos sejam deletados ou sobrescritos acidentalmente por usuários ou até mesmo por invasores durante um período de retenção predeterminado (modelo WORM — Write Once, Read Many)?",
+    options: [
+      {
+        id: "a",
+        text: "S3 Object Lock (com modo Compliance ou Governance)",
+      },
+      {
+        id: "b",
+        text: "S3 Transfer Acceleration",
+      },
+      {
+        id: "c",
+        text: "AWS Direct Connect",
+      },
+      {
+        id: "d",
+        text: "Amazon CloudFront Invalidation",
+      },
+    ],
+    correctOptionId: "a",
+    explanation:
+      "O S3 Object Lock permite armazenar objetos usando o modelo WORM (Write Once, Read Many), impedindo que um objeto seja excluído ou modificado durante um período fixo ou indefinido. No modo Compliance, nem mesmo a conta Root pode excluir o objeto durante o período de retenção.",
+    examReference: "CLF-C02: Domínio 2 e 3 — Proteção de Dados, Imutabilidade e Conformidade no S3.",
+  },
+
+  // ==========================================
+  // CAPÍTULO II: SEGURANÇA & IDENTIDADE (IAM, KMS, Modelo Compartilhado)
+  // ==========================================
+  {
+    id: "q-iam-1",
+    domain: "security",
+    difficulty: "intro",
+    relatedCardId: "guardian-iam",
+    questionText:
+      "De acordo com o Modelo de Responsabilidade Compartilhada da AWS, qual das seguintes atribuições é de responsabilidade exclusiva do CLIENTE ao utilizar uma instância do Amazon EC2?",
+    options: [
+      {
+        id: "a",
+        text: "Manutenção física e substituição de discos defeituosos no data center da AWS.",
+      },
+      {
+        id: "b",
+        text: "Instalação de patches de segurança e atualizações no Sistema Operacional convidado (Guest OS) da instância.",
+      },
+      {
+        id: "c",
+        text: "Segurança de perímetro físico das instalações da Zona de Disponibilidade.",
+      },
+      {
+        id: "d",
+        text: "Destruição segura e descarte de servidores físicos desativados.",
+      },
+    ],
+    correctOptionId: "b",
+    explanation:
+      "A AWS é responsável pela segurança 'DA' nuvem (hardware, data centers físicos, virtualização e infraestrutura global). O cliente é responsável pela segurança 'NA' nuvem (sistema operacional da instância EC2, regras de firewall/Security Groups, dados do cliente e IAM).",
+    examReference: "CLF-C02: Domínio 2 — Modelo de Responsabilidade Compartilhada (Shared Responsibility Model).",
+  },
+  {
+    id: "q-iam-2",
+    domain: "security",
+    difficulty: "standard",
+    relatedCardId: "guardian-iam",
+    questionText:
+      "Um desenvolvedor precisa conceder permissão temporária e segura para que uma aplicação em execução no Amazon EC2 acesse um Bucket do Amazon S3 sem gravar credenciais fixas (Access Keys) no código-fonte. Qual é a melhor prática recomendada pela AWS?",
+    options: [
+      {
+        id: "a",
+        text: "Atribuir um IAM Role (Perfil de IAM) com as permissões mínimas necessárias à instância EC2.",
+      },
+      {
+        id: "b",
+        text: "Usar as credenciais da conta Root no arquivo de configuração da aplicação.",
+      },
+      {
+        id: "c",
+        text: "Criar um usuário IAM administrativo e colar sua Access Key diretamente no repositório de código.",
+      },
+      {
+        id: "d",
+        text: "Desativar temporariamente o firewall da instância EC2 para autorizar o tráfego.",
+      },
+    ],
+    correctOptionId: "a",
+    explanation:
+      "IAM Roles permitem que instâncias EC2 e funções Lambda obtenham credenciais temporárias de curto prazo rotacionadas automaticamente pelo serviço STS, eliminando a necessidade de hardcoding de chaves estáticas e seguindo o princípio do Menor Privilégio.",
+    examReference: "CLF-C02: Domínio 2 — Gerenciamento de Identidade, IAM Roles e Práticas de Segurança.",
+  },
+
+  // ==========================================
+  // CAPÍTULO III: RESILIÊNCIA & INFRAESTRUTURA GLOBAL (Multi-AZ, Regiões, EC2)
+  // ==========================================
+  {
+    id: "q-infra-1",
     domain: "cloud-concepts",
     difficulty: "intro",
     relatedCardId: "guardian-ec2",
     questionText:
-      "Uma empresa precisa executar uma aplicação crítica de comércio eletrônico e deseja garantir que o sistema continue operando mesmo se um data center físico inteiro sofrer uma queda de energia catastrófica. Qual princípio de arquitetura da AWS deve ser implementado?",
+      "Uma empresa precisa executar uma aplicação crítica e deseja garantir que o sistema continue operando mesmo se um data center físico inteiro sofrer uma queda de energia catastrófica. Qual princípio de arquitetura da AWS deve ser implementado?",
     options: [
       {
         id: "a",
@@ -35,208 +163,16 @@ export const CLOUDWARDENS_QUESTIONS: ExamQuestion[] = [
     examReference: "CLF-C02: Domínio 1 — Infraestrutura Global da AWS e Tolerância a Falhas.",
   },
   {
-    id: "q-concepts-2",
+    id: "q-infra-2",
     domain: "cloud-concepts",
-    difficulty: "standard",
-    relatedCardId: "guardian-lambda",
-    questionText:
-      "Qual benefício da computação em nuvem descreve a capacidade de provisionar ou desalocar automaticamente recursos computacionais com base na demanda variável em tempo real?",
-    options: [
-      {
-        id: "a",
-        text: "Agilidade",
-      },
-      {
-        id: "b",
-        text: "Elasticidade",
-      },
-      {
-        id: "c",
-        text: "Durabilidade",
-      },
-      {
-        id: "d",
-        text: "Governança estática",
-      },
-    ],
-    correctOptionId: "b",
-    explanation:
-      "A Elasticidade é a capacidade de um sistema se expandir (scale-out) quando a demanda aumenta e se contrair (scale-in) quando o tráfego diminui, evitando tanto o subdimensionamento quanto o desperdício de pagar por capacidade ociosa.",
-    examReference: "CLF-C02: Domínio 1 — Benefícios da Nuvem AWS.",
-  },
-
-  // ==========================================
-  // DOMÍNIO 2: SEGURANÇA E CONFORMIDADE (Security)
-  // ==========================================
-  {
-    id: "q-sec-1",
-    domain: "security",
-    difficulty: "standard",
-    relatedCardId: "guardian-iam",
-    questionText:
-      "De acordo com as melhores práticas de segurança da AWS e o princípio do Menor Privilégio (Least Privilege), qual é a recomendação correta para o uso da conta de usuário Root da AWS?",
-    options: [
-      {
-        id: "a",
-        text: "Utilizar o usuário Root para as tarefas diárias de administração e desenvolvimento da equipe.",
-      },
-      {
-        id: "b",
-        text: "Criar chaves de acesso (Access Keys) permanentes para o usuário Root e compartilhá-las com os desenvolvedores.",
-      },
-      {
-        id: "c",
-        text: "Habilitar Autenticação Multifator (MFA) no usuário Root e utilizá-lo apenas para tarefas que exigem explicitamente privilégios Root, delegando o restante para usuários e roles do IAM.",
-      },
-      {
-        id: "d",
-        text: "Desativar o IAM e gerenciar todas as permissões através de senhas locais no sistema operacional das instâncias.",
-      },
-    ],
-    correctOptionId: "c",
-    explanation:
-      "A conta Root possui acesso total e irrestrito a todos os recursos e dados de faturamento da conta AWS. As melhores práticas exigem proteger o Root com MFA, nunca gerar chaves de acesso estáticas e utilizar usuários/roles do IAM com políticas restritivas para as atividades rotineiras.",
-    examReference: "CLF-C02: Domínio 2 — Gerenciamento de Identidades e Acesso (IAM) e Melhores Práticas.",
-  },
-  {
-    id: "q-sec-2",
-    domain: "security",
-    difficulty: "intro",
-    relatedCardId: "guardian-iam",
-    questionText:
-      "No Modelo de Responsabilidade Compartilhada da AWS, qual das seguintes tarefas é de responsabilidade EXCLUSIVA da AWS e NÃO do cliente?",
-    options: [
-      {
-        id: "a",
-        text: "Configurar as regras de firewall (Security Groups) das instâncias EC2.",
-      },
-      {
-        id: "b",
-        text: "Gerenciar senhas e políticas de rotação de credenciais de usuários do IAM.",
-      },
-      {
-        id: "c",
-        text: "Segurança física, descarte seguro de discos e manutenção de hardware nos data centers da AWS.",
-      },
-      {
-        id: "d",
-        text: "Criptografar os dados em trânsito e em repouso dentro dos buckets do Amazon S3.",
-      },
-    ],
-    correctOptionId: "c",
-    explanation:
-      "A AWS é responsável pela 'Segurança DA Nuvem' (infraestrutura global, hardware, data centers físicos, geradores de energia e virtualização básica). O cliente é responsável pela 'Segurança NA Nuvem' (dados do cliente, configuração do SO, firewalls e controle de acesso via IAM).",
-    examReference: "CLF-C02: Domínio 2 — Modelo de Responsabilidade Compartilhada.",
-  },
-
-  // ==========================================
-  // DOMÍNIO 3: TECNOLOGIA E SERVIÇOS (Technology)
-  // ==========================================
-  {
-    id: "q-tech-1",
-    domain: "technology",
-    difficulty: "standard",
-    relatedCardId: "guardian-s3",
-    questionText:
-      "Uma startup deseja armazenar milhões de imagens de usuários e precisa de uma solução que ofereça alta durabilidade, escalabilidade ilimitada e suporte para proteger arquivos contra exclusões acidentais com bloqueio de objeto. Qual serviço é o mais adequado?",
-    options: [
-      {
-        id: "a",
-        text: "Amazon Elastic Block Store (Amazon EBS)",
-      },
-      {
-        id: "b",
-        text: "Amazon Simple Storage Service (Amazon S3)",
-      },
-      {
-        id: "c",
-        text: "AWS Storage Gateway",
-      },
-      {
-        id: "d",
-        text: "Amazon Elastic File System (Amazon EFS)",
-      },
-    ],
-    correctOptionId: "b",
-    explanation:
-      "O Amazon S3 é um serviço de armazenamento de objetos altamente durável (99.999999999%), com recursos nativos como S3 Object Lock (WORM - Write Once, Read Many), versionamento e controle granular de ciclo de vida.",
-    examReference: "CLF-C02: Domínio 3 — Serviços de Armazenamento da AWS.",
-  },
-  {
-    id: "q-tech-2",
-    domain: "technology",
-    difficulty: "standard",
-    relatedCardId: "guardian-cloudfront",
-    questionText:
-      "Uma empresa possui clientes no Japão, Brasil e Europa acessando um site hospedado em instâncias EC2 na região us-east-1 (Virgínia do Norte). Qual serviço da AWS deve ser configurado para entregar o conteúdo estático com a menor latência possível aos usuários globais?",
-    options: [
-      {
-        id: "a",
-        text: "AWS Direct Connect",
-      },
-      {
-        id: "b",
-        text: "Amazon CloudFront",
-      },
-      {
-        id: "c",
-        text: "Amazon Simple Queue Service (Amazon SQS)",
-      },
-      {
-        id: "d",
-        text: "AWS Snowball",
-      },
-    ],
-    correctOptionId: "b",
-    explanation:
-      "O Amazon CloudFront é a CDN (Content Delivery Network) global da AWS que armazena em cache cópias dos conteúdos estáticos e dinâmicos em Edge Locations (Pontos de Presença) distribuídos mundialmente, entregando os dados aos usuários com mínima latência de rede.",
-    examReference: "CLF-C02: Domínio 3 — Rede e Entrega Global de Conteúdo.",
-  },
-
-  // ==========================================
-  // DOMÍNIO 4: FATURAMENTO E CUSTOS (Billing & Pricing)
-  // ==========================================
-  {
-    id: "q-billing-1",
-    domain: "billing",
-    difficulty: "intro",
-    relatedCardId: "anomaly-bill-spike",
-    questionText:
-      "Qual ferramenta da AWS permite que um arquiteto configure um limite financeiro mensal e receba notificações automáticas por e-mail quando os gastos reais ou previstos atingirem 80% do valor estipulado?",
-    options: [
-      {
-        id: "a",
-        text: "AWS Pricing Calculator",
-      },
-      {
-        id: "b",
-        text: "AWS Budgets",
-      },
-      {
-        id: "c",
-        text: "AWS Cost Explorer",
-      },
-      {
-        id: "d",
-        text: "AWS Artifact",
-      },
-    ],
-    correctOptionId: "b",
-    explanation:
-      "O AWS Budgets permite configurar orçamentos personalizados e disparar alertas via e-mail ou SNS antes que a fatura exceda o valor planejado. O Cost Explorer serve para visualizar e analisar o histórico de gastos, e o Pricing Calculator para estimar custos antes de provisionar.",
-    examReference: "CLF-C02: Domínio 4 — Gestão Financeira e Monitoramento de Custos.",
-  },
-  {
-    id: "q-billing-2",
-    domain: "billing",
     difficulty: "standard",
     relatedCardId: "guardian-ec2",
     questionText:
-      "Uma organização possui uma carga de trabalho de processamento em lote (batch processing) que pode ser interrompida a qualquer momento sem afetar o negócio e deseja obter o maior desconto possível (de até 90%). Qual modelo de compra do Amazon EC2 é o mais indicado?",
+      "Qual modelo de precificação do Amazon EC2 oferece o maior desconto (de até 90% sobre o preço sob demanda), sendo ideal para cargas de trabalho de processamento em lote que são tolerantes a interrupções imprevistas?",
     options: [
       {
         id: "a",
-        text: "On-Demand Instances",
+        text: "On-Demand Instances (Sob demanda)",
       },
       {
         id: "b",
@@ -248,12 +184,140 @@ export const CLOUDWARDENS_QUESTIONS: ExamQuestion[] = [
       },
       {
         id: "d",
-        text: "Compute Savings Plans",
+        text: "Savings Plans de 3 anos",
       },
     ],
     correctOptionId: "b",
     explanation:
-      "As instâncias Spot utilizam capacidade computacional ociosa da AWS com descontos de até 90% em relação ao preço On-Demand. A contrapartida é que a AWS pode recuperar a instância com um aviso prévio de 2 minutos se precisar da capacidade, tornando-as ideais para cargas de trabalho tolerantes a interrupção.",
-    examReference: "CLF-C02: Domínio 4 — Modelos de Precificação do Amazon EC2.",
+      "Instâncias Spot aproveitam a capacidade computacional ociosa da AWS com descontos de até 90%. Em contrapartida, a AWS pode recuperar a instância com um aviso prévio de 2 minutos se precisar da capacidade de volta, sendo ideal para workloads stateless e processamento batch.",
+    examReference: "CLF-C02: Domínio 4 — Modelos de Compra e Otimização de Custos no EC2.",
+  },
+
+  // ==========================================
+  // CAPÍTULO IV: SERVERLESS & ELASTICIDADE (Lambda, DynamoDB, CloudFront)
+  // ==========================================
+  {
+    id: "q-serverless-1",
+    domain: "technology",
+    difficulty: "standard",
+    relatedCardId: "guardian-lambda",
+    questionText:
+      "Qual das seguintes características melhor define a computação Serverless (sem servidor) na AWS, representada por serviços como AWS Lambda e Amazon DynamoDB?",
+    options: [
+      {
+        id: "a",
+        text: "Não há servidores físicos envolvidos em nenhum momento na infraestrutura do planeta.",
+      },
+      {
+        id: "b",
+        text: "O cliente não gerencia, provisiona nem aplica patches em servidores, e a cobrança é baseada estritamente no consumo real.",
+      },
+      {
+        id: "c",
+        text: "O cliente deve configurar manualmente o sistema operacional Linux e instalar os drivers de rede.",
+      },
+      {
+        id: "d",
+        text: "O serviço roda apenas durante o horário comercial de segunda a sexta-feira.",
+      },
+    ],
+    correctOptionId: "b",
+    explanation:
+      "Na arquitetura Serverless, os servidores continuam existindo fisicamente na AWS, mas o cliente fica completamente abstraído de tarefas de infraestrutura: escalabilidade automática, tolerância a falhas e aplicação de patches são gerenciados pela AWS, sem custos por tempo ocioso.",
+    examReference: "CLF-C02: Domínio 3 — Paradigma Serverless e Serviços Gerenciados da AWS.",
+  },
+  {
+    id: "q-serverless-2",
+    domain: "technology",
+    difficulty: "standard",
+    relatedCardId: "guardian-cloudfront",
+    questionText:
+      "Uma empresa com clientes na Europa, Ásia e América do Sul hospeda seu site estático em um Bucket do S3 nos Estados Unidos. Usuários no Japão reclamam de lentidão. Qual serviço da AWS deve ser implementado para reduzir a latência globalmente através de cache de borda?",
+    options: [
+      {
+        id: "a",
+        text: "Amazon CloudFront",
+      },
+      {
+        id: "b",
+        text: "AWS Snowball Edge",
+      },
+      {
+        id: "c",
+        text: "AWS CloudTrail",
+      },
+      {
+        id: "d",
+        text: "Amazon Elastic File System (EFS)",
+      },
+    ],
+    correctOptionId: "a",
+    explanation:
+      "O Amazon CloudFront é a CDN (Content Delivery Network) da AWS. Ele distribui conteúdo usando uma rede global de centenas de Edge Locations, servindo o conteúdo em cache com a menor latência possível para o usuário final.",
+    examReference: "CLF-C02: Domínio 3 — Rede de Distribuição Global, Edge Locations e CloudFront.",
+  },
+
+  // ==========================================
+  // CAPÍTULO V: FINOPS, CUSTOS & GOVERNANÇA (Budgets, Cost Explorer, TCO)
+  // ==========================================
+  {
+    id: "q-finops-1",
+    domain: "billing",
+    difficulty: "intro",
+    relatedCardId: "anomaly-bill-spike",
+    questionText:
+      "Qual ferramenta nativa da AWS permite definir limites de gastos personalizados e enviar notificações por e-mail ou SNS automaticamente quando os custos reais ou projetados ultrapassarem uma porcentagem estipulada?",
+    options: [
+      {
+        id: "a",
+        text: "AWS Budgets",
+      },
+      {
+        id: "b",
+        text: "AWS Trusted Advisor (somente no plano básico)",
+      },
+      {
+        id: "c",
+        text: "AWS Shield Standard",
+      },
+      {
+        id: "d",
+        text: "Amazon Inspector",
+      },
+    ],
+    correctOptionId: "a",
+    explanation:
+      "O AWS Budgets permite configurar orçamentos personalizados de custos e uso, enviando alertas em tempo real quando os limites forem atingidos ou quando as previsões matemáticas da AWS indicarem que o limite será ultrapassado no final do mês.",
+    examReference: "CLF-C02: Domínio 4 — Faturamento, Alertas e Controle Orçamentário com AWS Budgets.",
+  },
+  {
+    id: "q-finops-2",
+    domain: "billing",
+    difficulty: "standard",
+    relatedCardId: "anomaly-bill-spike",
+    questionText:
+      "Qual ferramenta gratuita da AWS permite visualizar, analisar e prever seus gastos históricos ao longo do tempo através de gráficos interativos com filtros por serviço, tag de centro de custo e região?",
+    options: [
+      {
+        id: "a",
+        text: "AWS Cost Explorer",
+      },
+      {
+        id: "b",
+        text: "AWS Pricing Calculator",
+      },
+      {
+        id: "c",
+        text: "AWS Artifact",
+      },
+      {
+        id: "d",
+        text: "AWS Systems Manager",
+      },
+    ],
+    correctOptionId: "a",
+    explanation:
+      "O AWS Cost Explorer fornece uma interface gráfica interativa para analisar gastos dos últimos meses e projetar faturas futuras. O AWS Pricing Calculator, por outro lado, é usado para estimar custos ANTES de criar os recursos.",
+    examReference: "CLF-C02: Domínio 4 — Análise Financeira, Visualização de Custos e AWS Cost Explorer.",
   },
 ];

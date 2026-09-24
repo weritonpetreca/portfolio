@@ -1,4 +1,52 @@
-import type { Card } from "./types";
+import type { Card, CardSynergy } from "./types";
+
+export const CLOUDWARDENS_SYNERGIES: CardSynergy[] = [
+  {
+    id: "synergy-reactive-serverless",
+    name: "Arquitetura Reativa Serverless",
+    requiredTags: ["serverless", "database"],
+    description: "Autômatos e o Livro Negro operam em milissegundos sem servidores ociosos.",
+    bonusPower: 4,
+    bonusDefense: 2,
+    bonusEther: 1,
+  },
+  {
+    id: "synergy-edge-cache",
+    name: "Bastião da Borda Acelerada",
+    requiredTags: ["storage", "edge"],
+    description: "O Cofre protegido pelo Manto Veloz distribui réplicas ultrarrápidas pelo mundo.",
+    bonusPower: 3,
+    bonusDefense: 5,
+    healFortress: 2,
+  },
+  {
+    id: "synergy-zero-trust",
+    name: "Muralha do Menor Privilégio",
+    requiredTags: ["security", "compute"],
+    description: "Sentinelas armados apenas com as credenciais estritamente necessárias para a missão.",
+    bonusPower: 2,
+    bonusDefense: 6,
+    bonusEther: 1,
+  },
+  {
+    id: "synergy-elastic-scale",
+    name: "Elasticidade Híbrida da Guilda",
+    requiredTags: ["compute", "serverless"],
+    description: "Cargas pesadas sustentadas por sentinelas com picos absorvidos pela forja instantânea.",
+    bonusPower: 5,
+    bonusDefense: 2,
+    healFortress: 3,
+  },
+  {
+    id: "synergy-resilient-messaging",
+    name: "Desacoplamento por Mensageria",
+    requiredTags: ["messaging", "compute"],
+    description: "Filas de mensageiros absorvem rajadas súbitas sem sobrecarregar a infraestrutura.",
+    bonusPower: 4,
+    bonusDefense: 4,
+    bonusEther: 2,
+  },
+];
 
 export const CLOUDWARDENS_CARDS: Card[] = [
   // ==========================================
@@ -15,6 +63,8 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     power: 7,
     defense: 10,
     energyCost: 2,
+    level: 1,
+    synergyTags: ["storage"],
     runeSymbol: "ᛞ", // Ingwaz: Proteção e armazenamento
     flavorText:
       "Forjado nas montanhas mais altas do Domínio de Âmbar, este cofre preserva manuscritos com 11 noves de durabilidade imutável.",
@@ -23,6 +73,8 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     examTip:
       "Dica CLF-C02: O Amazon S3 armazena objetos (arquivos) em Buckets com chaves e metadados. Não é um sistema de arquivos de blocos (como EBS) nem relacional (como RDS).",
     counters: ["anomaly-data-loss"],
+    artPrompt:
+      "A colossal, impenetrable stone and obsidian vault carved into a misty alpine mountain summit, glowing golden runic inscriptions etched on iron doors, ancient dwarven lock mechanisms, atmospheric storm clouds parting with divine amber sunlight, highly detailed dark fantasy oil painting style, cinematic composition, intricate textures, 8k resolution, trending on ArtStation",
   },
   {
     id: "guardian-lambda",
@@ -35,6 +87,8 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     power: 9,
     defense: 5,
     energyCost: 3,
+    level: 1,
+    synergyTags: ["serverless", "compute"],
     runeSymbol: "ᚦ", // Thurisaz: Força de ataque reativa
     flavorText:
       "Autômatos arcanos que despertam em fração de segundo quando um sinal é emitido, cumprindo sua missão e retornando ao pó sem cobrar pelo tempo de repouso.",
@@ -43,6 +97,8 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     examTip:
       "Dica CLF-C02: O AWS Lambda é o pilar serverless da AWS. O usuário é responsável apenas pelo código e configurações; a AWS cuida do patch de SO, escalabilidade e infraestrutura.",
     counters: ["anomaly-traffic-spike"],
+    artPrompt:
+      "An arcane clockwork forge deep inside a crystalline cavern, mechanical brass and iron automatons assembling themselves spontaneously from fiery runic sigils, cyan and amber energy sparks, volumetric steam and embers, dark fantasy gothic aesthetic, dramatic rim lighting, intricate gears, Masterpiece digital oil painting",
   },
   {
     id: "guardian-ec2",
@@ -55,6 +111,8 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     power: 6,
     defense: 8,
     energyCost: 3,
+    level: 1,
+    synergyTags: ["compute"],
     runeSymbol: "ᛏ", // Tiwaz: O guerreiro em guarda
     flavorText:
       "Um guerreiro de armadura pesada com controle total sobre suas lâminas, sistema de batalha e porte de carga. Permanece de prontidão dia e noite.",
@@ -63,189 +121,245 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     examTip:
       "Dica CLF-C02: Instâncias EC2 possuem modelos de compra cruciais para a prova: On-Demand (sem fidelidade), Reserved Instances / Savings Plans (desconto de até 72% por 1 ou 3 anos) e Spot Instances (desconto de até 90% para cargas tolerantes a interrupção).",
     counters: ["anomaly-spof"],
+    artPrompt:
+      "A towering sentinel knight in blackened gothic plate armor standing guard atop a stone fortress rampart overlooking a vast kingdom, glowing runic visor, wielding a broadsword infused with elemental lightning, atmospheric fog and embers, epic medieval dark fantasy art, photorealistic texture, Frank Frazetta inspired lighting",
   },
   {
     id: "guardian-dynamodb",
     name: "O Livro Negro de Nomes",
     awsService: "Amazon DynamoDB",
-    serviceCategory: "Banco de Dados NoSQL Serverless",
+    serviceCategory: "Banco de Dados NoSQL",
     domain: "technology",
     type: "guardian",
     rarity: "epic",
     power: 8,
-    defense: 9,
-    energyCost: 4,
-    runeSymbol: "ᚱ", // Raidho: Conexão ordenada de dados
+    defense: 7,
+    energyCost: 3,
+    level: 1,
+    synergyTags: ["database", "serverless"],
+    runeSymbol: "ᚨ", // Ansuz: Sabedoria e registros
     flavorText:
-      "Um tomo ancestral de páginas infinitas capaz de localizar o registro de qualquer alma em menos de dez milissegundos, mesmo que dez milhões de mãos o consultem ao mesmo tempo.",
+      "Um tomo arcano que encontra qualquer registro entre bilhões de nomes em tempo de um piscar de olhos, independentemente do tamanho da biblioteca.",
     technicalExplanation:
-      "Banco de dados NoSQL gerenciado de chave-valor e documentos. Oferece latência de dígito único de milissegundo em qualquer escala, replicação Multi-AZ automática e modo sob demanda.",
+      "Banco de dados NoSQL de chave-valor e documentos gerenciado e totalmente serverless. Oferece desempenho consistente de milissegundos de um dígito em qualquer escala com replicação Multi-AZ automática.",
     examTip:
-      "Dica CLF-C02: Diferente do Amazon RDS (que é relacional SQL e usa instâncias provisionadas), o DynamoDB é totalmente NoSQL, gerenciado e serverless com particionamento automático.",
-    counters: ["anomaly-traffic-spike"],
+      "Dica CLF-C02: DynamoDB é NoSQL e chave-valor (Key-Value/Document). Se a questão do exame exigir ACID relacional com joins SQL complexos, a resposta costuma ser Amazon RDS ou Aurora.",
+    counters: ["anomaly-dead-letters"],
+    artPrompt:
+      "A massive mystical tome floating above a stone pedestal in an ancient library, pages made of shimmering black obsidian parchment covered with lightning-fast glowing golden runes, crackling electric arcane aura, dark fantasy grimoire, cinematic depth of field, hyperdetailed",
   },
   {
     id: "guardian-cloudfront",
-    name: "O Mensageiro da Borda",
+    name: "O Manto dos Portais Rápidos",
     awsService: "Amazon CloudFront",
-    serviceCategory: "Rede & CDN Global",
+    serviceCategory: "Rede de Entrega de Conteúdo (CDN)",
     domain: "technology",
     type: "guardian",
     rarity: "rare",
     power: 7,
-    defense: 7,
+    defense: 9,
     energyCost: 2,
-    runeSymbol: "ᛖ", // Ehwaz: Movimento veloz
+    level: 1,
+    synergyTags: ["edge", "networking"],
+    runeSymbol: "ᛖ", // Ehwaz: Movimento e velocidade
     flavorText:
-      "Postos de vigia espalhados por todos os continentes do mundo conhecido, entregando defesas e mensagens a passos de distância de quem as solicita.",
+      "Uma rede invisível de espelhos e portais espalhados pelas fronteiras do continente, entregando mensagens quase instantaneamente a quem as pede.",
     technicalExplanation:
-      "Rede de entrega de conteúdo (CDN) rápida e segura que distribui dados, vídeos, aplicações e APIs globalmente através de centenas de Edge Locations, reduzindo a latência.",
+      "Content Delivery Network (CDN) global e seguro. Faz cache de conteúdos estáticos e dinâmicos em centenas de Edge Locations ao redor do mundo, reduzindo a latência e protegendo a origem.",
     examTip:
-      "Dica CLF-C02: O CloudFront utiliza Pontos de Presença (Edge Locations) para fazer cache de conteúdo estático e dinâmico mais próximo dos usuários finais, aliviando os servidores de origem (como S3 ou EC2).",
+      "Dica CLF-C02: O CloudFront utiliza Edge Locations da infraestrutura global da AWS para armazenar em cache o conteúdo próximo dos usuários finais, integrando-se nativamente com AWS Shield contra ataques DDoS.",
     counters: ["anomaly-traffic-spike"],
+    artPrompt:
+      "A spectral archmage in midnight-blue hooded robes weaving a network of glowing speed portals across a continental map, arcane ley lines connecting distant watchtowers at lightspeed, twilight sky, mystical particle trails, cinematic fantasy concept art",
   },
   {
     id: "guardian-iam",
-    name: "O Mestre das Chaves",
+    name: "O Selo das Chaves Reais",
     awsService: "AWS IAM",
-    serviceCategory: "Segurança, Identidade & Acesso",
+    serviceCategory: "Segurança & Identidade",
     domain: "security",
     type: "guardian",
     rarity: "legendary",
     power: 9,
     defense: 10,
-    energyCost: 1,
-    runeSymbol: "ᛉ", // Algiz: O escudo sagrado de proteção
+    energyCost: 4,
+    level: 1,
+    synergyTags: ["security"],
+    runeSymbol: "ᛉ", // Algiz: Proteção suprema e santuário
     flavorText:
-      "Nenhuma criatura ou entidade pisa nos corredores da cidadela sem declarar sua identidade e provar que detém o selo estrito para cruzar aquela porta específica.",
+      "Ninguém adentra as câmaras do rei sem portar o selo exato de sua função. Quem não é esperado, não tem permissão para sequer tocar a maçaneta.",
     technicalExplanation:
-      "Serviço central de controle de acesso da AWS. Gerencia Usuários, Grupos, Roles (papéis temporários com STS) e Políticas JSON seguindo o princípio do Menor Privilégio (Least Privilege).",
+      "AWS Identity and Access Management. Gerencia usuários, grupos, papéis (Roles) e políticas JSON com base no princípio do Menor Privilégio (Least Privilege), autenticação multifator (MFA) e controle granular.",
     examTip:
-      "Dica CLF-C02: O IAM é um serviço GLOBAL (não regional) e gratuito. Regra de ouro da prova: NUNCA use as credenciais da conta Root para tarefas diárias; exija MFA e delegue permissões via IAM Roles e Policies.",
+      "Dica CLF-C02: Nunca use o usuário Root no dia a dia. Crie usuários e Roles IAM específicos. O IAM é um serviço global (não requer seleção de região) e é gratuito.",
     counters: ["anomaly-root-breach"],
+    artPrompt:
+      "A solemn inquisitor paladin holding a glowing golden sovereign key and a heavy ceremonial wax seal, surrounded by floating runic lockets that open only for the worthy, gothic vaulted cathedral interior, shafts of stained-glass light, highly detailed medieval illustration",
+  },
+  {
+    id: "guardian-sqs",
+    name: "O Mensageiro das Sombras",
+    awsService: "Amazon SQS",
+    serviceCategory: "Mensageria e Filas",
+    domain: "technology",
+    type: "guardian",
+    rarity: "rare",
+    power: 6,
+    defense: 9,
+    energyCost: 2,
+    level: 1,
+    synergyTags: ["messaging", "serverless"],
+    runeSymbol: "ᚱ", // Raidho: Mensageiro e jornada
+    flavorText:
+      "Um correio encapuzado que guarda mensagens em bolsas encantadas. Se o destinatário estiver ocupado, as cartas aguardam em segurança sem jamais se perderem.",
+    technicalExplanation:
+      "Serviço de enfileiramento de mensagens distribuído e totalmente gerenciado. Desacopla componentes de aplicações distribuídas, garantindo que picos de requisições não derrubem sistemas downstream.",
+    examTip:
+      "Dica CLF-C02: O Amazon SQS desacopla sistemas e garante que mensagens fiquem retidas até serem processadas. Filas padrão oferecem throughput ilimitado; Filas FIFO garantem ordem estrita.",
+    counters: ["anomaly-dead-letters", "anomaly-traffic-spike"],
+    artPrompt:
+      "A mysterious hooded courier walking through a moonlit gothic alleyway carrying an enchanted satchel overflowing with glowing wax-sealed missives, dark fantasy atmosphere, misty cobblestones, eerie lantern light",
   },
 
   // ==========================================
-  // ANOMALIAS DE NUVEM (Incidentes e Desafios)
+  // ANOMALIAS DA NUVEM (Vulnerabilidades e Falhas)
   // ==========================================
   {
     id: "anomaly-spof",
-    name: "O Colosso do Ponto Único de Falha",
-    awsService: "Conceito: Single Point of Failure (SPOF)",
-    serviceCategory: "Anti-Padrão Arquitetural",
+    name: "O Gargalo Fatal",
+    awsService: "Ponto Único de Falha (SPOF)",
+    serviceCategory: "Falha de Arquitetura",
     domain: "cloud-concepts",
     type: "anomaly",
-    rarity: "common",
+    rarity: "rare",
     power: 7,
     defense: 6,
-    energyCost: 2,
-    runeSymbol: "ᚾ", // Nauthiz: Necessidade / Fragilidade
+    energyCost: 3,
+    level: 1,
+    runeSymbol: "ᚻ", // Hagalaz: Ruína e granizo
     flavorText:
-      "Uma fera que apoia todo o peso de sua carcaça sobre uma única perna de barro. Se essa perna ruir, todo o seu corpo desaba em silêncio.",
+      "Uma ponte estreita sustentada por uma única pilastra de calcário desgastada. Quando ela quebrar, todo o reino ficará isolado no abismo.",
     technicalExplanation:
-      "Arquitetura implantada em apenas uma Zona de Disponibilidade (Single-AZ) ou em uma única instância sem réplicas de leitura ou balanceador de carga.",
+      "Single Point of Failure (SPOF). Ocorre quando um sistema depende de um componente individual sem redundância. Se este componente falhar, o serviço inteiro entra em indisponibilidade.",
     examTip:
-      "Dica CLF-C02: Alta Disponibilidade (High Availability) e Tolerância a Falhas (Fault Tolerance) exigem implantação Multi-AZ e balanceamento automático de carga via Elastic Load Balancing (ELB).",
-    weakness: "Multi-AZ Deployment, Elastic Load Balancing e Auto Scaling.",
+      "Dica CLF-C02: Para eliminar SPOFs na AWS, utilize arquiteturas Multi-AZ com Elastic Load Balancers (ALB/NLB) e Auto Scaling Groups distribuídos geograficamente.",
+    weakness: "guardian-ec2",
+    artPrompt:
+      "A crumbling medieval stone bridge spanning a terrifying chasm with a single cracked keystone trembling under immense weight, ominous ravens circling, dark stormy sky, impending structural collapse, gothic dark fantasy landscape",
   },
   {
     id: "anomaly-root-breach",
-    name: "O Infiltrador da Chave Raiz",
-    awsService: "Conceito: Root User Abuse / Missing MFA",
-    serviceCategory: "Vulnerabilidade Crítica de Segurança",
+    name: "O Olho Invasor da Coroa",
+    awsService: "Exposição de Usuário Root",
+    serviceCategory: "Violação de Segurança",
     domain: "security",
     type: "anomaly",
-    rarity: "epic",
+    rarity: "legendary",
     power: 10,
-    defense: 4,
-    energyCost: 3,
-    runeSymbol: "ᛚ", // Laguz: Águas turvas e traição
+    defense: 8,
+    energyCost: 4,
+    level: 1,
+    runeSymbol: "ᚾ", // Nauthiz: Necessidade e risco iminente
     flavorText:
-      "Uma sombra que rasteja até os aposentos do Rei, rouba o carimbo soberano esquecido sem tranca e emite ordens que abrem os portões para os invasores.",
+      "Um espião mascarado que roubou a coroa do imperador e seus carimbos sagrados. Ele tem poder de decretar a dissolução de todas as províncias.",
     technicalExplanation:
-      "Comprometimento de credenciais da conta Root da AWS por ausência de Autenticação Multifator (MFA) ou compartilhamento de chaves de acesso estáticas em código público.",
+      "Comprometimento das credenciais do AWS Root Account. O usuário Root possui acesso irrestrito a todos os recursos e dados de faturamento, tornando sua violação um desastre absoluto.",
     examTip:
-      "Dica CLF-C02: A conta Root possui permissões irrestritas irreversíveis. A melhor prática do AWS Well-Architected exige bloquear o Root com MFA físico ou virtual e criar usuários IAM com privilégios limitados.",
-    weakness: "Ativação obrigatória de MFA, eliminação de access keys da conta Root e adoção de IAM Roles.",
+      "Dica CLF-C02: As melhores práticas da AWS exigem: bloquear o Root com MFA físico/virtual, nunca criar Access Keys para o Root e utilizar usuários IAM ou IAM Identity Center para tarefas diárias.",
+    weakness: "guardian-iam",
+    artPrompt:
+      "A shadowy ghostly thief hand picking a royal throne room vault lock with a glowing skeleton key, venomous purple mist creeping on marble floors, crimson moonlight through high arched windows, dark fantasy suspense",
   },
   {
     id: "anomaly-traffic-spike",
-    name: "A Maré da Sobrecarga Imprevisível",
-    awsService: "Conceito: Traffic Surge / Unscaled Compute",
-    serviceCategory: "Gargalo de Elasticidade",
-    domain: "cloud-concepts",
+    name: "A Maré Devoradora de Tráfego",
+    awsService: "Pico Inesperado de Requisições / DDoS",
+    serviceCategory: "Gargalo de Disponibilidade",
+    domain: "technology",
     type: "anomaly",
-    rarity: "rare",
+    rarity: "epic",
     power: 8,
     defense: 7,
     energyCost: 3,
-    runeSymbol: "ᚺ", // Hagalaz: Tempestade destrutiva
+    level: 1,
+    runeSymbol: "ᛁ", // Isa: Estagnação por sobrecarga
     flavorText:
-      "Uma horda imensa de aldeões correndo desesperados ao mesmo tempo em direção à mesma ponte estreita, esmagando as defesas sob o próprio peso.",
+      "Centenas de milhares de viajantes batem aos portões da cidade no mesmo minuto. Sem pontes largas e guardas adicionais, os portões arrebentarão.",
     technicalExplanation:
-      "Picos repentinos de requisições que superam a capacidade de processamento fixo, gerando erros HTTP 504 Gateway Timeout e indisponibilidade de serviço.",
+      "Sobrecarga de tráfego volumétrico ou ataque de negação de serviço (DDoS). Esgota sockets de rede, conexões de banco de dados e CPU dos servidores centrais.",
     examTip:
-      "Dica CLF-C02: Elasticidade é a capacidade de expandir e contrair recursos computacionais automaticamente conforme a demanda flutua, através de EC2 Auto Scaling e arquiteturas Serverless com AWS Lambda.",
-    weakness: "Amazon CloudFront para cache de borda e AWS Lambda / EC2 Auto Scaling para absorver picos.",
+      "Dica CLF-C02: A AWS combate picos e DDoS combinando Amazon CloudFront (absorve requisições na borda), AWS Shield (proteção DDoS gerenciada) e AWS WAF (filtragem de tráfego web malicioso).",
+    weakness: "guardian-cloudfront",
+    artPrompt:
+      "A colossal tidal wave made of shadowy swarming wraiths crashing violently against a coastal cliffside fortress, foaming sea, apocalyptic stormy sky, dark fantasy epic warfare",
   },
   {
     id: "anomaly-bill-spike",
-    name: "O Devorador de Faturas",
-    awsService: "Conceito: Zombie Resources & Unmonitored Costs",
-    serviceCategory: "Vazamento Financeiro / FinOps",
+    name: "O Dreno Oculto do Tesouro",
+    awsService: "Custos Descontrolados em Nuvem",
+    serviceCategory: "Gargalo Financeiro",
     domain: "billing",
     type: "anomaly",
     rarity: "rare",
-    power: 8,
-    defense: 6,
-    energyCost: 2,
-    runeSymbol: "ᚠ", // Fehu invertido: Perda de riquezas
-    flavorText:
-      "Um gnomo ladrão que instala torneiras secretas nos canos da tesouraria real. Quando o chanceler abre os cofres no fim do ciclo lunar, nada mais resta.",
-    technicalExplanation:
-      "Recursos esquecidos ativos (instâncias EC2 rodando sem uso, volumes EBS órfãos, gateways NAT desnecessários) sem orçamentos configurados ou alarmes de faturamento.",
-    examTip:
-      "Dica CLF-C02: O AWS Budgets permite definir orçamentos personalizados e alertas de notificação via e-mail/SNS quando os custos reais ou previstos excedem o limite estabelecido. O AWS Cost Explorer analisa o histórico de gastos.",
-    weakness: "AWS Budgets com alertas proativos e relatórios de auditoria do AWS Trusted Advisor.",
-  },
-  {
-    id: "anomaly-dead-letters",
-    name: "A Besta das Mensagens Perdidas",
-    awsService: "Conceito: Message Loss in Asynchronous Decoupling",
-    serviceCategory: "Falha de Integração e Mensageria",
-    domain: "technology",
-    type: "anomaly",
-    rarity: "common",
     power: 6,
     defense: 6,
     energyCost: 2,
-    runeSymbol: "ᛈ", // Perthro: O incerto / O acaso
+    level: 1,
+    runeSymbol: "ᛃ", // Jera: Ciclos e colheitas (ou perdas)
     flavorText:
-      "Espíritos errantes que interceptam os corvos-mensageiros da guilda no meio do caminho, engolindo os pergaminhos sem que o remetente saiba que a mensagem nunca chegou.",
+      "Uma fissura invisível no chão do cofre por onde escorrem moedas de ouro sem parar. Apenas no fim do mês o tesoureiro descobre que os cofres estão vazios.",
     technicalExplanation:
-      "Falhas em pipelines assíncronos onde uma mensagem processada por uma fila falha consecutivas vezes e é descartada sem rastreabilidade ou reprocessamento.",
+      "Consumo não planejado de recursos de nuvem (ex: instâncias superdimensionadas ociosas, snapshots esquecidos, egress de dados desnecessário).",
     examTip:
-      "Dica CLF-C02: O Amazon SQS (Simple Queue Service) desacopla componentes de aplicação. A fila de mensagens não entregues (Dead-Letter Queue - DLQ) isola mensagens com erro para análise posterior sem interromper o fluxo principal.",
-    weakness: "Configuração de Dead-Letter Queue (DLQ) no Amazon SQS e alarmes de profundidade de fila.",
+      "Dica CLF-C02: Utilize o AWS Cost Explorer para analisar tendências históricas, AWS Budgets para configurar alertas proativos antes que a conta estoure, e AWS Cost Anomaly Detection baseado em ML.",
+    weakness: "guardian-ec2",
+    artPrompt:
+      "A demonic goblin-like treasure leech siphoning gold coins from an ornate chest with an insatiable mouth, scattered rubies, dark damp dungeon vault, glowing avaricious yellow eyes, dark fantasy creature art",
+  },
+  {
+    id: "anomaly-dead-letters",
+    name: "A Fila das Mensagens Esquecidas",
+    awsService: "Dead Letter Queue / Mensagens Corrompidas",
+    serviceCategory: "Falha de Processamento",
+    domain: "technology",
+    type: "anomaly",
+    rarity: "common",
+    power: 5,
+    defense: 7,
+    energyCost: 2,
+    level: 1,
+    runeSymbol: "ᛈ", // Perthro: O enigma oculto
+    flavorText:
+      "Milhares de cartas enviadas para destinatários inexistentes empilham-se nas agências dos correios até que os mensageiros não consigam mais trabalhar.",
+    technicalExplanation:
+      "Mensagens venenosas (poison pills) que causam erro fatal nos consumidores repetidamente, bloqueando a fila de processamento sem Dead-Letter Queue (DLQ).",
+    examTip:
+      "Dica CLF-C02: O Amazon SQS suporta Dead-Letter Queues (DLQ) para isolar mensagens que falharam no processamento após um número máximo de tentativas (maxReceiveCount), permitindo análise sem perda de dados.",
+    weakness: "guardian-dynamodb",
+    artPrompt:
+      "A forgotten dungeon catacomb filled with piles of glowing wax-sealed parchment letters tangled in spectral cobwebs, ghostly lanterns, somber melancholy atmosphere, dark fantasy illustration",
   },
   {
     id: "anomaly-data-loss",
-    name: "O Espectro da Catástrofe Física",
-    awsService: "Conceito: Lack of Disaster Recovery & Durability",
-    serviceCategory: "Perda Crítica de Dados",
-    domain: "cloud-concepts",
+    name: "O Abismo do Esquecimento",
+    awsService: "Perda de Dados por Falta de Backup/Replicação",
+    serviceCategory: "Catástrofe de Armazenamento",
+    domain: "technology",
     type: "anomaly",
     rarity: "epic",
     power: 9,
     defense: 8,
     energyCost: 4,
-    runeSymbol: "ᛁ", // Isa: Estagnação e congelamento
+    level: 1,
+    runeSymbol: "ᚲ", // Kaunan: Chama devoradora
     flavorText:
-      "Um tremor de terra que abre uma fenda sob a biblioteca real, engolindo os únicos exemplares existentes de todos os mapas e tratados de paz do continente.",
+      "Um incêndio arcanamente ateado consome o único tomo existente de leis da cidade. Nenhum duplicado jamais havia sido escrito.",
     technicalExplanation:
-      "Destruição irreversível de dados causada por ausência de políticas de backup geodistribuído, exclusão acidental ou corrupção de arquivos sem versionamento.",
+      "Falha catastrófica de integridade decorrente de ausência de backups periódicos, falta de versionamento e inexistência de replicação entre regiões (Cross-Region Replication).",
     examTip:
-      "Dica CLF-C02: RPO (Recovery Point Objective - quantidade máxima aceitável de perda de dados no tempo) e RTO (Recovery Time Objective - tempo máximo para restaurar o serviço) são métricas centrais de Disaster Recovery da AWS.",
-    weakness: "Armazenamento no Amazon S3 com versionamento ativado e replicação entre regiões (Cross-Region Replication - CRR).",
+      "Dica CLF-C02: O AWS Backup centraliza e automatiza a proteção de dados em múltiplos serviços (EBS, RDS, S3, DynamoDB, EFS) em conformidade com RTO e RPO corporativos.",
+    weakness: "guardian-s3",
+    artPrompt:
+      "A terrifying cosmic abyss tearing open inside an ancient library, sucking crumbling scrolls and books into an endless void of black holes and violet cosmic dust, apocalyptic dark fantasy",
   },
 ];

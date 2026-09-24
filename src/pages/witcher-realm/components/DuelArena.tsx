@@ -1,48 +1,119 @@
 import { useState } from "react";
-import { CLOUDWARDENS_CARDS } from "../../../data/cloudwardens/cards";
-import type { Card } from "../../../data/cloudwardens/types";
+import { CLOUDWARDENS_CARDS, CLOUDWARDENS_SYNERGIES } from "../../../data/cloudwardens/cards";
+import type { Card, CardSynergy } from "../../../data/cloudwardens/types";
 import { Card3D } from "./Card3D";
 
 export function DuelArena() {
-  const guardians = CLOUDWARDENS_CARDS.filter((c) => c.type === "guardian");
-  const anomalies = CLOUDWARDENS_CARDS.filter((c) => c.type === "anomaly");
+  const allGuardians = CLOUDWARDENS_CARDS.filter((c) => c.type === "guardian");
+  const allAnomalies = CLOUDWARDENS_CARDS.filter((c) => c.type === "anomaly");
 
   // Estado do combate
   const [currentAnomalyIndex, setCurrentAnomalyIndex] = useState(0);
   const [fortressHp, setFortressHp] = useState(25);
   const [anomalyHp, setAnomalyHp] = useState(20);
   const [etherUnits, setEtherUnits] = useState(6);
+
+  // Deck, Mão e Tabuleiro (One-use por turno + compra estilo Gwent)
+  const [hand, setHand] = useState<Card[]>(() => allGuardians.slice(0, 4));
+  const [drawDeck, setDrawDeck] = useState<Card[]>(() => allGuardians.slice(4));
+  const [playedField, setPlayedField] = useState<Card[]>([]);
+
+  // Animações de Ataque e Dano
+  const [attackingCardId, setAttackingCardId] = useState<string | null>(null);
+  const [anomalyImpact, setAnomalyImpact] = useState(false);
+  const [fortressImpact, setFortressImpact] = useState(false);
+  const [floatingDamage, setFloatingDamage] = useState<{
+    target: "anomaly" | "fortress";
+    text: string;
+    isCrit: boolean;
+  } | null>(null);
+  const [activeSynergyAlert, setActiveSynergyAlert] = useState<CardSynergy | null>(null);
+
   const [battleLogs, setBattleLogs] = useState<string[]>([
     "⚔️ O alarme de monitoramento soou! Uma anomalia foi detectada nas fronteiras da nuvem.",
   ]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [hasWon, setHasWon] = useState(false);
 
-  const currentAnomaly = anomalies[currentAnomalyIndex] || anomalies[0];
-  const playerHand = guardians.slice(0, 4);
+  const currentAnomaly = allAnomalies[currentAnomalyIndex] || allAnomalies[0];
 
   const handlePlayCard = (card: Card) => {
-    if (isGameOver) return;
+    if (isGameOver || attackingCardId) return;
 
     if (etherUnits < card.energyCost) {
       setBattleLogs((prev) => [
-        `⚠️ Éter insuficiente! Você precisa de ${card.energyCost} unidades para invocar ${card.name}.`,
+        `⚠️ Éter insuficiente! Você precisa de ${card.energyCost} unidades para mobilizar ${card.name}.`,
         ...prev,
       ]);
       return;
     }
 
+    // 1. Inicia animação de avanço da carta
+    setAttackingCardId(card.id);
+
+    // 2. Cálculo de Sinergia (estilo Gwent) com cartas já no campo
+    let synergyBonusPower = 0;
+    let triggeredSynergy: CardSynergy | null = null;
+
+    if (card.synergyTags) {
+      const fieldTags = new Set(playedField.flatMap((c) => c.synergyTags || []));
+      for (const tag of card.synergyTags) {
+        fieldTags.add(tag);
+      }
+
+      for (const syn of CLOUDWARDENS_SYNERGIES) {
+        const hasAllTags = syn.requiredTags.every((req) => fieldTags.has(req));
+        if (hasAllTags && !activeSynergyAlert) {
+          triggeredSynergy = syn;
+          synergyBonusPower = syn.bonusPower;
+          break;
+        }
+      }
+    }
+
+    if (triggeredSynergy) {
+      setActiveSynergyAlert(triggeredSynergy);
+      setTimeout(() => setActiveSynergyAlert(null), 3000);
+    }
+
+    // 3. Cálculo de Dano Crítico e Efeitos
     const isCritical = card.counters?.includes(currentAnomaly.id);
-    const damageDealt = isCritical ? card.power * 2 : card.power;
-    const newAnomalyHp = Math.max(0, anomalyHp - damageDealt);
-    const newEther = etherUnits - card.energyCost + 2; // Recupera 2 de éter por turno
+    const baseDamage = isCritical ? card.power * 2 : card.power;
+    const totalDamage = baseDamage + synergyBonusPower;
+    const newAnomalyHp = Math.max(0, anomalyHp - totalDamage);
+
+    // Efeito de impacto no inimigo
+    setTimeout(() => {
+      setAnomalyImpact(true);
+      setFloatingDamage({
+        target: "anomaly",
+        text: `-${totalDamage} ${isCritical ? "CRÍTICO!" : ""}`,
+        isCrit: !!isCritical,
+      });
+      setTimeout(() => {
+        setAnomalyImpact(false);
+        setFloatingDamage(null);
+      }, 1200);
+    }, 250);
 
     const logEntry = isCritical
-      ? `💥 DANO CRÍTICO DE ARQUITETURA! ${card.name} (${card.awsService}) contra-atacou a fraqueza de ${currentAnomaly.name}, infligindo ${damageDealt} de dano!`
-      : `⚔️ Você mobilizou ${card.name} (${card.awsService}), infligindo ${damageDealt} de dano à anomalia.`;
+      ? `💥 DANO CRÍTICO DE ARQUITETURA! ${card.name} (${card.awsService}) contra-atacou a fraqueza de ${currentAnomaly.name}, infligindo ${totalDamage} de dano!${
+          triggeredSynergy ? ` (Sinergia: +${synergyBonusPower} ATK)` : ""
+        }`
+      : `⚔️ Você mobilizou ${card.name} (${card.awsService}), infligindo ${totalDamage} de dano à anomalia.${
+          triggeredSynergy ? ` (Sinergia: +${synergyBonusPower} ATK)` : ""
+        }`;
 
+    // Atualiza campo e mão (carta consumida, só pode ser usada UMA vez)
+    const nextHand = hand.filter((c) => c.id !== card.id);
+    const nextPlayed = [...playedField, card];
+
+    // Se anomalia foi destruída: Vitória
     if (newAnomalyHp <= 0) {
       setAnomalyHp(0);
+      setHand(nextHand);
+      setPlayedField(nextPlayed);
+      setAttackingCardId(null);
       setBattleLogs((prev) => [
         `🏆 VITÓRIA! ${currentAnomaly.name} foi totalmente neutralizada com sucesso! A fortaleza permaneceu estável.`,
         logEntry,
@@ -53,42 +124,80 @@ export function DuelArena() {
       return;
     }
 
-    // Contra-ataque da Anomalia
-    const incomingDamage = Math.max(1, currentAnomaly.power - Math.floor(card.defense / 2));
-    const newFortressHp = Math.max(0, fortressHp - incomingDamage);
+    // Contra-ataque da anomalia com delay tático
+    setTimeout(() => {
+      const incomingDamage = Math.max(
+        1,
+        currentAnomaly.power - Math.floor(card.defense / 2) - (triggeredSynergy?.bonusDefense || 0)
+      );
+      const newFortressHp = Math.max(0, fortressHp - incomingDamage);
 
-    setAnomalyHp(newAnomalyHp);
-    setFortressHp(newFortressHp);
-    setEtherUnits(Math.min(10, newEther));
+      setFortressImpact(true);
+      setFloatingDamage({
+        target: "fortress",
+        text: `-${incomingDamage} HP`,
+        isCrit: false,
+      });
+      setTimeout(() => {
+        setFortressImpact(false);
+        setFloatingDamage(null);
+      }, 1000);
 
-    const enemyLog = `⚡ A anomalia revidou! ${currentAnomaly.name} desferiu ${incomingDamage} de dano contra a infraestrutura da sua fortaleza.`;
+      // Compra de carta ao final do turno se houver no deck
+      let updatedHand = nextHand;
+      let updatedDeck = drawDeck;
+      if (drawDeck.length > 0 && nextHand.length < 4) {
+        const [drawnCard, ...remainingDeck] = drawDeck;
+        updatedHand = [...nextHand, drawnCard];
+        updatedDeck = remainingDeck;
+      }
 
-    if (newFortressHp <= 0) {
-      setBattleLogs((prev) => [
-        `💀 DOWNTIME TOTAL! A infraestrutura colapsou sob o ataque da anomalia. Reinicie o simulador.`,
-        enemyLog,
-        logEntry,
-        ...prev,
-      ]);
-      setIsGameOver(true);
-      setHasWon(false);
-    } else {
-      setBattleLogs((prev) => [enemyLog, logEntry, ...prev]);
-    }
+      const newEther = Math.min(
+        10,
+        etherUnits - card.energyCost + 2 + (triggeredSynergy?.bonusEther || 0)
+      );
+
+      setAnomalyHp(newAnomalyHp);
+      setFortressHp(newFortressHp);
+      setEtherUnits(newEther);
+      setHand(updatedHand);
+      setDrawDeck(updatedDeck);
+      setPlayedField(nextPlayed);
+      setAttackingCardId(null);
+
+      const enemyLog = `⚡ A anomalia revidou! ${currentAnomaly.name} desferiu ${incomingDamage} de dano contra a infraestrutura da sua fortaleza.`;
+
+      if (newFortressHp <= 0) {
+        setBattleLogs((prev) => [
+          `💀 DOWNTIME TOTAL! A infraestrutura colapsou sob o ataque da anomalia. Reinicie o simulador.`,
+          enemyLog,
+          logEntry,
+          ...prev,
+        ]);
+        setIsGameOver(true);
+        setHasWon(false);
+      } else {
+        setBattleLogs((prev) => [enemyLog, logEntry, ...prev]);
+      }
+    }, 700);
   };
 
   const handleRestart = (nextAnomaly = false) => {
     const nextIdx = nextAnomaly
-      ? (currentAnomalyIndex + 1) % anomalies.length
+      ? (currentAnomalyIndex + 1) % allAnomalies.length
       : currentAnomalyIndex;
     setCurrentAnomalyIndex(nextIdx);
     setFortressHp(25);
     setAnomalyHp(20);
     setEtherUnits(6);
+    setHand(allGuardians.slice(0, 4));
+    setDrawDeck(allGuardians.slice(4));
+    setPlayedField([]);
+    setAttackingCardId(null);
     setIsGameOver(false);
     setHasWon(false);
     setBattleLogs([
-      `🔄 Novo contrato de defesa iniciado contra ${anomalies[nextIdx].name}!`,
+      `🔄 Novo contrato de defesa iniciado contra ${allAnomalies[nextIdx].name}! Mão reabastecida.`,
     ]);
   };
 
@@ -99,10 +208,16 @@ export function DuelArena() {
       <div className="grid gap-4 sm:grid-cols-3 font-mono text-xs">
         
         {/* Saúde da Fortaleza do Jogador */}
-        <div className="rounded-lg border border-emerald-500/50 bg-emerald-950/40 p-4 text-center sm:text-left">
+        <div
+          className={`rounded-lg border transition-all p-4 text-center sm:text-left ${
+            fortressImpact
+              ? "border-red-500 bg-red-950/70 shadow-[0_0_20px_rgba(239,68,68,0.5)] scale-102"
+              : "border-emerald-500/50 bg-emerald-950/40"
+          }`}
+        >
           <div className="flex items-center justify-between mb-1">
-            <span className="text-emerald-400 font-bold uppercase tracking-wider">
-              🏰 Saúde da Fortaleza
+            <span className="text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+              <span>🏰</span> Saúde da Fortaleza
             </span>
             <span className="text-emerald-300 font-bold text-sm">
               {fortressHp} / 25 HP
@@ -119,8 +234,8 @@ export function DuelArena() {
         {/* Recursos de Éter (Compute Units) */}
         <div className="rounded-lg border border-amber-500/50 bg-amber-950/40 p-4 text-center">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-amber-400 font-bold uppercase tracking-wider">
-              ⚡ Capacidade de Éter
+            <span className="text-amber-400 font-bold uppercase tracking-wider flex items-center justify-center gap-1">
+              <span>⚡</span> Capacidade de Éter
             </span>
             <span className="text-amber-300 font-bold text-sm">
               {etherUnits} / 10
@@ -140,89 +255,152 @@ export function DuelArena() {
           </div>
         </div>
 
-        {/* Saúde da Anomalia Inimiga */}
-        <div className="rounded-lg border border-red-500/50 bg-red-950/40 p-4 text-center sm:text-right">
+        {/* Informações de Compra e Deck */}
+        <div className="rounded-lg border border-sky-500/50 bg-sky-950/40 p-4 text-center sm:text-right">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-red-400 font-bold uppercase tracking-wider">
-              💀 Corrupção da Anomalia
+            <span className="text-sky-400 font-bold uppercase tracking-wider">
+              📚 Deck de Compra
             </span>
-            <span className="text-red-300 font-bold text-sm">
-              {anomalyHp} / 20 HP
+            <span className="text-sky-300 font-bold text-sm">
+              {drawDeck.length} cartas
             </span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-forge-950 border border-forge-800">
-            <div
-              className="h-full bg-red-500 transition-all duration-300"
-              style={{ width: `${(anomalyHp / 20) * 100}%` }}
-            />
-          </div>
+          <p className="text-[11px] text-steel mt-1">
+            Compre 1 carta ao fim de cada turno.
+          </p>
         </div>
 
       </div>
 
-      {/* Campo de Batalha Central */}
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+      {/* Alerta de Sinergia Arquitetural Ativada (Estilo Gwent) */}
+      {activeSynergyAlert && (
+        <div className="rounded-lg border-2 border-amber-400 bg-gradient-to-r from-amber-950 via-amber-900 to-black p-4 text-center shadow-[0_0_25px_rgba(245,158,11,0.4)] animate-pulse">
+          <span className="font-mono text-xs font-bold uppercase tracking-widest text-amber-300 flex items-center justify-center gap-2">
+            <span>✨</span> SINERGIA DE ARQUITETURA ATIVADA: {activeSynergyAlert.name}!
+          </span>
+          <p className="font-sans text-xs text-bone mt-1">
+            {activeSynergyAlert.description} (+{activeSynergyAlert.bonusPower} ATK, +{activeSynergyAlert.bonusDefense} DEF)
+          </p>
+        </div>
+      )}
+
+      {/* Campo Central da Batalha */}
+      <div className="grid gap-6 lg:grid-cols-3">
         
-        {/* Lado Esquerdo: Anomalia Ativa + Mão do Jogador */}
-        <div className="space-y-6">
+        {/* Lado Esquerdo / Central: Oponente (Anomalia) e Mão do Jogador */}
+        <div className="lg:col-span-2 space-y-6">
           
-          {/* Anomalia em Campo */}
-          <div className="rounded-xl border-2 border-red-600/70 bg-gradient-to-b from-red-950/50 via-forge-950 to-black p-6 shadow-2xl">
+          {/* Card do Chefe Anomalia */}
+          <div
+            className={`relative rounded-xl border-2 p-6 transition-all duration-300 ${
+              anomalyImpact
+                ? "border-red-500 bg-red-950/70 shadow-[0_0_30px_rgba(239,68,68,0.6)] scale-102 ring-2 ring-red-400"
+                : "border-red-600/60 bg-gradient-to-b from-red-950/40 via-forge-950 to-black"
+            }`}
+          >
+            {/* Dano Flutuante */}
+            {floatingDamage && floatingDamage.target === "anomaly" && (
+              <div className="absolute top-4 right-6 z-30 font-mono text-xl sm:text-2xl font-extrabold text-amber-300 drop-shadow-[0_2px_8px_rgba(0,0,0,1)] animate-bounce">
+                {floatingDamage.text}
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <span className="font-mono text-xs font-bold text-red-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <span>🚨</span> INCIDENTE DE PRODUÇÃO DETECTADO
+              <div className="text-center sm:text-left">
+                <span className="font-mono text-xs uppercase tracking-widest text-red-400 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
+                  <span>⚠️</span> ANOMALIA EM CURSO · {currentAnomalyIndex + 1} de {allAnomalies.length}
                 </span>
-                <h3 className="mt-1 font-display text-2xl font-bold text-bone">
+                <h3 className="font-display text-2xl font-bold text-bone mt-1">
                   {currentAnomaly.name}
                 </h3>
-                <span className="font-mono text-xs font-bold text-amber-400">
+                <span className="font-mono text-xs text-amber-400 font-bold block">
                   {currentAnomaly.awsService}
                 </span>
-                <p className="mt-2 font-sans text-xs sm:text-sm text-slate-300 max-w-xl">
-                  {currentAnomaly.technicalExplanation}
+                <p className="font-sans text-xs text-slate-300 mt-2 max-w-md">
+                  "{currentAnomaly.flavorText}"
                 </p>
-                <div className="mt-2 text-xs font-mono text-amber-200/90">
-                  <strong>Ponto Fraco Arquitetural:</strong> {currentAnomaly.weakness}
-                </div>
               </div>
 
-              <div className="shrink-0 flex flex-col items-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-red-500/60 bg-red-950/80 shadow-[0_0_20px_rgba(220,38,38,0.4)]">
-                  <span className="font-display text-4xl text-red-300">
-                    {currentAnomaly.runeSymbol}
+              {/* Barra de Vida da Anomalia */}
+              <div className="w-full sm:w-48 text-center sm:text-right font-mono text-xs">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-steel">Integridade:</span>
+                  <span className="text-red-400 font-bold text-sm">
+                    {anomalyHp} / 20 HP
                   </span>
                 </div>
-                <span className="mt-2 font-mono text-xs font-bold text-red-400">
-                  Ataque: {currentAnomaly.power}
+                <div className="h-3 w-full overflow-hidden rounded-full bg-forge-900 border border-red-900">
+                  <div
+                    className="h-full bg-red-600 transition-all duration-300"
+                    style={{ width: `${(anomalyHp / 20) * 100}%` }}
+                  />
+                </div>
+                <span className="mt-2 block text-[10px] text-steel">
+                  Fraqueza: <strong className="text-amber-400">{currentAnomaly.weakness}</strong>
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Mão de Cartas do Jogador */}
+          {/* Cartas em Campo (Sinergias Ativas) */}
+          {playedField.length > 0 && (
+            <div className="rounded-lg border border-forge-700/60 bg-black/50 p-3 font-mono text-xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-steel text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                  <span>🏛️</span> Infraestrutura Forjada em Campo (Sinergias Ativas):
+                </span>
+                <span className="text-amber-400 text-[10px]">
+                  {playedField.length} cartas implantadas
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {playedField.map((c, i) => (
+                  <span
+                    key={`${c.id}-${i}`}
+                    className="rounded border border-amber-600/40 bg-forge-900/80 px-2 py-0.5 text-[10px] text-amber-300"
+                  >
+                    {c.awsService}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Mão do Jogador (Cartas Únicas por Turno) */}
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-mono text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
-                <span>🎴</span> SUA MÃO DE GUARDIÕES (Clique em uma carta para jogar)
-              </h4>
-              <span className="font-mono text-[11px] text-steel">
-                Recupere +2 de Éter ao agir
+            <div className="flex items-center justify-between mb-3 font-mono text-xs">
+              <span className="font-bold text-bone flex items-center gap-1.5">
+                <span>🎴</span> Sua Mão de Guardiões ({hand.length}/4) — Cada carta só pode ser mobilizada 1 vez:
+              </span>
+              <span className="text-steel text-[11px]">
+                Clique na carta para mobilizar
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 justify-items-center">
-              {playerHand.map((card) => (
-                <div
-                  key={card.id}
-                  onClick={() => handlePlayCard(card)}
-                  className={`cursor-pointer transition-all duration-300 hover:-translate-y-2 ${
-                    etherUnits < card.energyCost ? "opacity-40 grayscale pointer-events-none" : ""
-                  }`}
-                >
-                  <Card3D card={card} compact onSelect={handlePlayCard} />
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4">
+              {hand.map((card) => {
+                const isThisAttacking = attackingCardId === card.id;
+                const canAfford = etherUnits >= card.energyCost;
+
+                return (
+                  <div
+                    key={card.id}
+                    className={`transition-all duration-300 ${
+                      isThisAttacking
+                        ? "scale-108 -translate-y-4 shadow-[0_0_25px_rgba(245,158,11,0.6)] z-30"
+                        : ""
+                    } ${!canAfford ? "opacity-45 grayscale pointer-events-none" : ""}`}
+                  >
+                    <Card3D card={card} compact onSelect={handlePlayCard} />
+                  </div>
+                );
+              })}
+
+              {hand.length === 0 && (
+                <div className="w-full text-center py-8 font-mono text-xs text-steel border border-dashed border-forge-800 rounded-lg">
+                  Suas cartas de mão foram todas mobilizadas na infraestrutura!
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -238,7 +416,7 @@ export function DuelArena() {
               <span className="text-[10px] text-steel">Tempo Real</span>
             </div>
 
-            <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
               {battleLogs.map((log, idx) => (
                 <div
                   key={idx}
@@ -270,9 +448,10 @@ export function DuelArena() {
                     : "bg-ember text-bone hover:bg-ember-soft"
                 }`}
               >
-                {hasWon ? "Próxima Anomalia ⚔️" : "Tentar Novamente 🔄"}
+                {hasWon ? "Enfrentar Próxima Anomalia ⚔️" : "Reconstruir Infraestrutura 🔄"}
               </button>
             )}
+
             <button
               type="button"
               onClick={() => handleRestart(false)}

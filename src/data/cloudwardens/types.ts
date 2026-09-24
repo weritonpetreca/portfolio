@@ -25,6 +25,21 @@ export interface Card {
   weakness?: string; // Para anomalias: qual arquitetura a neutraliza
   counters?: string[]; // IDs de anomalias que esta carta derrota com dano crítico
   runeSymbol: string; // Glifo rúnico
+  level?: number; // Nível da carta: 1 (base), 2 (forjada), 3 (mestre holográfica)
+  synergyTags?: string[]; // Tags de sinergia: "serverless", "storage", "database", "edge", "security", "compute"
+  artPrompt?: string; // Prompt refinado em inglês para geração de arte em IA (Nano Banana, Midjourney, Imagen)
+  imageUrl?: string; // URL da ilustração oficial
+}
+
+export interface CardSynergy {
+  id: string;
+  name: string;
+  requiredTags: string[];
+  description: string;
+  bonusPower: number;
+  bonusDefense: number;
+  bonusEther?: number;
+  healFortress?: number;
 }
 
 export interface ExamQuestion {
