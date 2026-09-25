@@ -1,7 +1,8 @@
 import { CLOUDWARDENS_CARDS } from "./cards";
-import type { BoosterPack, Card, CardRarity, PlayerGameState } from "./types";
+import type { BoosterPack, Card, CardRarity, CloudwardenUser, PlayerGameState } from "./types";
 
 const STORAGE_KEY = "cloudwardens_player_save_v1";
+const ACCOUNTS_STORAGE_KEY = "cloudwardens_registered_accounts_v1";
 
 export const STARTER_CARD_IDS = [
   "guardian-ec2",
@@ -21,6 +22,7 @@ export const INITIAL_BOOTER_PACKS: BoosterPack[] = [
 ];
 
 export const DEFAULT_PLAYER_STATE: PlayerGameState = {
+  user: null,
   unlockedCardIds: STARTER_CARD_IDS,
   savedDecks: [
     {
@@ -53,6 +55,41 @@ export const DEFAULT_PLAYER_STATE: PlayerGameState = {
   isTutorialCompleted: false,
 };
 
+export function getRegisteredAccounts(): CloudwardenUser[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function registerAccount(user: Omit<CloudwardenUser, "id" | "createdAt">): CloudwardenUser {
+  const accounts = getRegisteredAccounts();
+  const existing = accounts.find((a) => a.email.toLowerCase() === user.email.toLowerCase());
+  if (existing) {
+    throw new Error("Este e-mail já está registrado na guilda. Faça login ou utilize outro endereço.");
+  }
+  const newUser: CloudwardenUser = {
+    ...user,
+    id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    createdAt: new Date().toISOString(),
+  };
+  accounts.push(newUser);
+  localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+  return newUser;
+}
+
+export function authenticateAccount(email: string): CloudwardenUser {
+  const accounts = getRegisteredAccounts();
+  const found = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
+  if (!found) {
+    throw new Error("Guardião não encontrado com este e-mail. Verifique a digitação ou forje seu registro.");
+  }
+  return found;
+}
+
 export function loadPlayerState(): PlayerGameState {
   if (typeof window === "undefined") return DEFAULT_PLAYER_STATE;
   try {
@@ -62,6 +99,7 @@ export function loadPlayerState(): PlayerGameState {
     return {
       ...DEFAULT_PLAYER_STATE,
       ...parsed,
+      user: parsed.user ?? null,
       unlockedCardIds: parsed.unlockedCardIds || DEFAULT_PLAYER_STATE.unlockedCardIds,
       savedDecks: parsed.savedDecks || DEFAULT_PLAYER_STATE.savedDecks,
     };

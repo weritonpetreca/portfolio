@@ -75,7 +75,18 @@ export interface DailyStreakState {
   canClaimToday: boolean;
 }
 
+export interface CloudwardenUser {
+  id: string;
+  name: string;
+  email: string;
+  faction: "amber" | "silicon" | "vortex";
+  cloudFocus: "aws" | "azure" | "gcp" | "multicloud";
+  guardianTitle: string;
+  createdAt: string;
+}
+
 export interface PlayerGameState {
+  user: CloudwardenUser | null;
   unlockedCardIds: string[];
   savedDecks: SavedDeck[];
   activeDeckId: string;
@@ -99,19 +110,23 @@ export interface WeeklyEventChallenge {
   activeUntil: string;
 }
 
+export interface QuestionOption {
+  id: string;
+  text: string;
+  explanation?: string; // Explicação no estilo Stéphane Maarek de por que esta opção está certa ou errada
+}
+
 export interface ExamQuestion {
   id: string;
   domain: CloudDomain;
   relatedCardId?: string; // Carta concedida como recompensa ao acertar
   difficulty: "intro" | "standard" | "advanced";
   questionText: string; // Cenário real no formato da prova da AWS
-  options: {
-    id: string;
-    text: string;
-  }[];
+  options: QuestionOption[];
   correctOptionId: string;
-  explanation: string; // Justificativa detalhada de cada alternativa
+  explanation: string; // Justificativa geral do conceito
   examReference: string; // Referência ao domínio da prova CLF-C02
+  docsUrl?: string; // Link direto para a documentação técnica oficial da AWS
 }
 
 export interface QuestTrial {

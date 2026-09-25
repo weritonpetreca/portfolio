@@ -151,4 +151,79 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     // Ether balance should remain 50, not 200
     expect(screen.getAllByText(/50 Éter/i).length).toBeGreaterThanOrEqual(1);
   });
+
+  it("handles user registration through AuthModal and shows player identity in header", () => {
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    // Click "Entrar" in header
+    const enterBtn = screen.getByTitle(/Entrar ou Cadastrar Guardião/i);
+    fireEvent.click(enterBtn);
+
+    // AuthModal is shown
+    expect(screen.getByText(/PORTAL DOS CLOUDWARDENS/i)).toBeInTheDocument();
+
+    // Fill in registration form
+    const nameInput = screen.getByPlaceholderText(/Ex: Weriton Dev/i);
+    const emailInput = screen.getByPlaceholderText(/seu.email@exemplo.com/i);
+    const passInput = screen.getByPlaceholderText(/••••••••/i);
+
+    fireEvent.change(nameInput, { target: { value: "Weriton Arch" } });
+    fireEvent.change(emailInput, { target: { value: "weriton@cloudwardens.io" } });
+    fireEvent.change(passInput, { target: { value: "secure123" } });
+
+    // Submit registration
+    const submitBtn = screen.getByRole("button", { name: /Forjar Registro na Guilda/i });
+    fireEvent.click(submitBtn);
+
+    // Modal closes and header + intro display user identity
+    expect(screen.getAllByText(/Weriton Arch/i).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("shows Stéphane Maarek style explanation and blocks reward when wrong option is selected in tutorial", () => {
+    // Start with tutorial uncompleted
+    localStorage.clear();
+
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    // Open tutorial
+    const tutorialBtn = screen.getByTitle(/Abrir Tutorial do Aprendiz/i);
+    fireEvent.click(tutorialBtn);
+
+    // Advance step 1 -> step 2 -> step 3
+    fireEvent.click(screen.getByRole("button", { name: /Aceitar a Convocação/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Receber Cartas e Prosseguir/i }));
+
+    expect(screen.getByText(/O Teste de Conhecimento do Oráculo/i)).toBeInTheDocument();
+
+    // Select WRONG option B: "Aumentar a memória RAM de um único servidor físico."
+    const wrongOptionBtn = screen.getByRole("button", { name: /Aumentar a memória RAM/i });
+    fireEvent.click(wrongOptionBtn);
+
+    // Verify Stéphane Maarek error feedback and detailed explanation
+    expect(screen.getByText(/Resposta Incorreta — Momento de Aprendizado/i)).toBeInTheDocument();
+    expect(screen.getByText(/Escalabilidade Vertical/i)).toBeInTheDocument();
+    expect(screen.getByText(/Documentação Técnica AWS ↗/i)).toBeInTheDocument();
+
+    // Verify reward button is LOCKED
+    const lockedBtn = screen.getByRole("button", { name: /Selecione a Resposta Correta para Avançar/i });
+    expect(lockedBtn).toBeDisabled();
+
+    // Now select CORRECT option A: "Implantar em múltiplas Zonas de Disponibilidade (Multi-AZ) redundantes."
+    const correctOptionBtn = screen.getByRole("button", { name: /Multi-AZ/i });
+    fireEvent.click(correctOptionBtn);
+
+    // Verify success feedback and unlocked reward button
+    expect(screen.getByText(/Excelente! Resposta Correta/i)).toBeInTheDocument();
+    const claimBtn = screen.getByRole("button", { name: /Reivindicar Recompensa de Conclusão/i });
+    expect(claimBtn).not.toBeDisabled();
+  });
 });
+

@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import type { CloudwardenUser } from "../../../data/cloudwardens/types";
 
 export type CloudwardensTab = "intro" | "career" | "deckbuilder" | "deck" | "arena" | "boosters" | "oracle";
 
@@ -6,6 +7,9 @@ interface CloudwardensHeaderProps {
   activeTab: CloudwardensTab;
   onTabChange: (tab: CloudwardensTab) => void;
   onOpenTutorial: () => void;
+  user: CloudwardenUser | null;
+  onOpenAuth: () => void;
+  onLogout: () => void;
   etherBalance: number;
   unopenedPacksCount: number;
 }
@@ -14,6 +18,9 @@ export function CloudwardensHeader({
   activeTab,
   onTabChange,
   onOpenTutorial,
+  user,
+  onOpenAuth,
+  onLogout,
   etherBalance,
   unopenedPacksCount,
 }: CloudwardensHeaderProps) {
@@ -158,6 +165,36 @@ export function CloudwardensHeader({
           >
             ❓ <span className="hidden sm:inline">Guia</span>
           </button>
+
+          {/* Perfil do Guardião / Botão de Autenticação */}
+          {user ? (
+            <div className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-amber-600/50 bg-amber-950/50 px-2 sm:px-2.5 py-1 text-xs text-amber-200">
+              <span className="text-sm">
+                {user.faction === "amber" ? "🛡️" : user.faction === "silicon" ? "⚡" : "🌀"}
+              </span>
+              <div className="hidden lg:block text-left leading-tight">
+                <span className="block font-bold text-bone max-w-[90px] truncate">{user.name}</span>
+                <span className="block text-[9px] text-amber-400/80">{user.guardianTitle}</span>
+              </div>
+              <button
+                type="button"
+                onClick={onLogout}
+                title="Desconectar Guardião"
+                className="cursor-pointer text-steel hover:text-red-400 px-1 text-[11px] font-bold transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onOpenAuth}
+              title="Entrar ou Cadastrar Guardião"
+              className="cursor-pointer rounded-md border border-amber-500/80 bg-gradient-to-r from-amber-600 to-amber-500 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-black shadow-md hover:from-amber-500 hover:to-amber-400 transition-all hover:scale-105"
+            >
+              🔑 <span className="hidden sm:inline">Entrar</span>
+            </button>
+          )}
         </div>
 
       </div>

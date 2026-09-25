@@ -13,6 +13,7 @@ import { DuelArena } from "./components/DuelArena";
 import { OracleSimulado } from "./components/OracleSimulado";
 import { BoosterOpeningModal } from "./components/BoosterOpeningModal";
 import { TutorialModal } from "./components/TutorialModal";
+import { AuthModal } from "./components/AuthModal";
 import {
   loadPlayerState,
   savePlayerState,
@@ -24,6 +25,7 @@ export function WitcherRealmPage() {
   const [activeTab, setActiveTab] = useState<CloudwardensTab>("intro");
   const [playerState, setPlayerStateInternal] = useState<PlayerGameState>(loadPlayerState);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Sincroniza e persiste alterações no localStorage
   const handleUpdatePlayerState = (updater: (prev: PlayerGameState) => PlayerGameState) => {
@@ -73,6 +75,9 @@ export function WitcherRealmPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onOpenTutorial={() => setIsTutorialOpen(true)}
+        user={playerState.user}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onLogout={() => handleUpdatePlayerState((prev) => ({ ...prev, user: null }))}
         etherBalance={playerState.etherCurrency}
         unopenedPacksCount={playerState.unopenedPacks.length}
       />
@@ -84,6 +89,7 @@ export function WitcherRealmPage() {
             playerState={playerState}
             onNavigate={setActiveTab}
             onOpenTutorial={() => setIsTutorialOpen(true)}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
           />
         )}
         {activeTab === "career" && (
@@ -91,6 +97,7 @@ export function WitcherRealmPage() {
             playerState={playerState}
             onSelectBattleAnomaly={(_id) => setActiveTab("arena")}
             onOpenDeckBuilder={() => setActiveTab("deckbuilder")}
+            onRequestAuth={() => setIsAuthModalOpen(true)}
           />
         )}
         {activeTab === "deckbuilder" && (
@@ -116,6 +123,18 @@ export function WitcherRealmPage() {
         onClose={() => setIsTutorialOpen(false)}
         onCompleteTutorial={handleCompleteTutorial}
         playerState={playerState}
+      />
+
+      {/* Modal de Autenticação / Cadastro de Guardião */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={(user) => {
+          handleUpdatePlayerState((prev) => ({
+            ...prev,
+            user,
+          }));
+        }}
       />
 
       {/* Rodapé do Universo & Conformidade */}

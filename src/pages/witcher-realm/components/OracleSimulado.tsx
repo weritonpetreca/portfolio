@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CLOUDWARDENS_QUESTIONS } from "../../../data/cloudwardens/questions";
 import { CLOUDWARDENS_QUESTS } from "../../../data/cloudwardens/quests";
 import type { ExamQuestion, QuestTrial } from "../../../data/cloudwardens/types";
+import { ExamExplanationView } from "./ExamExplanationView";
 
 export function OracleSimulado() {
   const [activeSubTab, setActiveSubTab] = useState<"quiz" | "quests">("quiz");
@@ -199,13 +200,14 @@ export function OracleSimulado() {
                 })}
               </div>
 
-              {/* Justificativa e Explicação Oficial (Ao responder) */}
+              {/* Justificativa e Explicação Oficial Estilo Stéphane Maarek (Ao responder) */}
               {isAnswerSubmitted && (
-                <div className="rounded-lg border border-sky-500/50 bg-sky-950/40 p-4 font-sans text-xs sm:text-sm text-sky-200 leading-relaxed mb-6">
-                  <strong className="block font-mono text-xs font-bold uppercase tracking-wider text-sky-400 mb-1">
-                    📖 Justificativa Oficial da AWS:
-                  </strong>
-                  {currentQ.explanation}
+                <div className="mb-6">
+                  <ExamExplanationView
+                    question={currentQ}
+                    selectedOptionId={selectedOption}
+                    isCorrect={selectedOption === currentQ.correctOptionId}
+                  />
                 </div>
               )}
 

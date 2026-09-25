@@ -5,12 +5,14 @@ interface GameIntroductionProps {
   playerState: PlayerGameState;
   onNavigate: (tab: CloudwardensTab) => void;
   onOpenTutorial: () => void;
+  onOpenAuth: () => void;
 }
 
 export function GameIntroduction({
   playerState,
   onNavigate,
   onOpenTutorial,
+  onOpenAuth,
 }: GameIntroductionProps) {
   const unlockedCount = playerState.unlockedCardIds.length;
   const unopenedPacksCount = playerState.unopenedPacks.length;
@@ -66,17 +68,19 @@ export function GameIntroduction({
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4 text-center md:text-left">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-amber-500/60 bg-amber-950/60 text-3xl shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-              🛡️
+              {playerState.user?.faction === "silicon" ? "⚡" : playerState.user?.faction === "vortex" ? "🌀" : "🛡️"}
             </div>
             <div>
               <span className="text-[11px] uppercase tracking-widest text-amber-400 font-bold">
-                SEU REGISTRO NA GUILDA
+                {playerState.user ? "GUARDIÃO AUTENTICADO" : "MODO CONVIDADO (ANÔNIMO)"}
               </span>
               <h3 className="text-base sm:text-lg font-bold text-bone">
-                {playerState.isTutorialCompleted ? "Cloudwarden Formado" : "Aprendiz de Nuvem"}
+                {playerState.user ? playerState.user.name : "Guardião Errante"}
               </h3>
               <p className="text-xs text-steel">
-                {unlockedCount} cartas ativas no grimório · Nível de Acesso AWS Fundamentos
+                {playerState.user
+                  ? `${playerState.user.guardianTitle} · ${playerState.user.faction.toUpperCase()} · ${unlockedCount} cartas ativas`
+                  : `${unlockedCount} cartas ativas · Cadastre-se para sincronizar seu progresso nas nuvens`}
               </p>
             </div>
           </div>
@@ -104,6 +108,16 @@ export function GameIntroduction({
                 className="cursor-pointer rounded-lg border border-amber-400 bg-amber-500 px-4 py-2 text-black hover:bg-amber-400 transition-colors animate-pulse"
               >
                 Abrir Pacotes ➔
+              </button>
+            )}
+
+            {!playerState.user && (
+              <button
+                type="button"
+                onClick={onOpenAuth}
+                className="cursor-pointer rounded-lg border border-amber-500/80 bg-gradient-to-r from-amber-600 to-amber-500 px-4 py-2 text-black font-bold uppercase hover:from-amber-500 hover:to-amber-400 transition-all shadow-md"
+              >
+                🔑 Entrar / Cadastrar
               </button>
             )}
           </div>

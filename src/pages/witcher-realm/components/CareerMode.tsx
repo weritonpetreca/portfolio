@@ -2,11 +2,13 @@ import { useState } from "react";
 import { CLOUDWARDENS_CARDS } from "../../../data/cloudwardens/cards";
 import { CLOUDWARDENS_QUESTIONS } from "../../../data/cloudwardens/questions";
 import type { CareerTrackNode, ExamQuestion, PlayerGameState } from "../../../data/cloudwardens/types";
+import { ExamExplanationView } from "./ExamExplanationView";
 
 interface CareerModeProps {
   playerState: PlayerGameState;
   onSelectBattleAnomaly: (anomalyId: string) => void;
   onOpenDeckBuilder: () => void;
+  onRequestAuth?: () => void;
 }
 
 export const AWS_CLF02_NODES: CareerTrackNode[] = [
@@ -86,6 +88,7 @@ export function CareerMode({
   playerState,
   onSelectBattleAnomaly,
   onOpenDeckBuilder,
+  onRequestAuth,
 }: CareerModeProps) {
   const [selectedProvider, setSelectedProvider] = useState<"aws" | "azure" | "gcp" | "multicloud">("aws");
   const [selectedTrack, setSelectedTrack] = useState<string>("clf-c02");
@@ -147,6 +150,32 @@ export function CareerMode({
 
   return (
     <div className="space-y-8 font-mono">
+      
+      {/* AVISO DE AUTENTICAÇÃO / MODO CONVIDADO */}
+      {!playerState.user && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-amber-600/50 bg-amber-950/40 p-4 text-xs shadow-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🛡️</span>
+            <div>
+              <p className="font-bold text-amber-200">
+                Acesso como Guardião Anônimo (Modo Convidado)
+              </p>
+              <p className="text-amber-300/80 text-[11px] font-sans">
+                Para salvar o progresso permanente de cartas, históricos de simulados e saldo de Éter, forje seu cadastro de Guardião.
+              </p>
+            </div>
+          </div>
+          {onRequestAuth && (
+            <button
+              type="button"
+              onClick={onRequestAuth}
+              className="shrink-0 cursor-pointer rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold uppercase text-black hover:bg-amber-400 transition-colors shadow-md"
+            >
+              🔑 Entrar / Cadastrar
+            </button>
+          )}
+        </div>
+      )}
       
       {/* SELETOR DE PROVEDOR DE NUVEM */}
       <div className="rounded-xl border border-forge-700/80 bg-gradient-to-r from-forge-900/90 via-forge-950/90 to-black p-5 shadow-xl">
@@ -383,11 +412,16 @@ export function CareerMode({
                     </div>
 
                     {isAnswerSubmitted && (
-                      <div className="p-3.5 rounded-lg border border-sky-500/40 bg-sky-950/30 text-xs text-sky-200 leading-relaxed">
-                        <strong className="block text-sky-400 font-bold uppercase text-[10px] mb-1">
-                          📖 Justificativa Oficial:
-                        </strong>
-                        {currentQ.explanation}
+                      <div className="pt-2">
+                        <ExamExplanationView
+                          question={currentQ}
+                          selectedOptionId={selectedOption}
+                          isCorrect={selectedOption === currentQ.correctOptionId}
+                          onTryAgain={() => {
+                            setSelectedOption(null);
+                            setIsAnswerSubmitted(false);
+                          }}
+                        />
                       </div>
                     )}
 
