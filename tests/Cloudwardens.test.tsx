@@ -111,7 +111,7 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     expect(screen.getByText(/Justificativa Oficial da AWS/i)).toBeInTheDocument();
   });
 
-  it("does not award duplicate Éter if tutorial is already completed", () => {
+  it("hides tutorial entry points when tutorial is completed and prevents duplicate rewards", () => {
     localStorage.setItem(
       "cloudwardens_player_save_v1",
       JSON.stringify({ isTutorialCompleted: true, etherCurrency: 50 })
@@ -126,30 +126,62 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     // Initial ether is 50
     expect(screen.getAllByText(/50 Éter/i).length).toBeGreaterThanOrEqual(1);
 
-    // Open tutorial from header
-    const tutorialBtn = screen.getByTitle(/Abrir Tutorial do Aprendiz/i);
-    fireEvent.click(tutorialBtn);
+    // Tutorial entry point is NOT visible in header or hero when already completed
+    expect(screen.queryByTitle(/Abrir Tutorial do Aprendiz/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Guia do Aprendiz \(Tutorial\)/i })).not.toBeInTheDocument();
+  });
 
-    // Modal is open
-    expect(screen.getByText(/PASSO 1 DE 5/i)).toBeInTheDocument();
+  it("opens booster cards individually without revealing all cards at once when last card is clicked", () => {
+    localStorage.setItem(
+      "cloudwardens_player_save_v1",
+      JSON.stringify({
+        isTutorialCompleted: true,
+        unopenedPacks: [
+          {
+            id: "pack-test-1",
+            name: "Booster de Teste Individual",
+            description: "Pacote para teste de abertura individual.",
+            cardsCount: 3,
+            guaranteedRarity: "rare",
+          },
+        ],
+      })
+    );
 
-    // Advance step 1 -> step 2
-    fireEvent.click(screen.getByRole("button", { name: /Aceitar a Convocação/i }));
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
 
-    // Advance step 2 -> step 3
-    fireEvent.click(screen.getByRole("button", { name: /Receber Cartas e Prosseguir/i }));
+    // Navigate to boosters tab
+    const boostersBtn = screen.getAllByRole("button", { name: /Boosters/i })[0];
+    fireEvent.click(boostersBtn);
 
-    // Advance step 3: answer question then claim
-    const modalButtons = screen.getAllByRole("button", { name: /Multi-AZ/i });
-    fireEvent.click(modalButtons[modalButtons.length - 1]);
-    fireEvent.click(screen.getByRole("button", { name: /Reivindicar Recompensa/i }));
+    // Click "Abrir Pacote Agora"
+    const openPackBtn = screen.getByRole("button", { name: /Abrir Pacote Agora/i });
+    fireEvent.click(openPackBtn);
 
-    // Step 4 shows already completed review state
-    expect(screen.getByText(/TUTORIAL JÁ CONCLUÍDO/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Concluir Revisão/i }));
+    // 3 unrevealed cards appear
+    const unrevealedCards = screen.getAllByRole("button", { name: /Clique para Revelar/i });
+    expect(unrevealedCards.length).toBe(3);
 
-    // Ether balance should remain 50, not 200
-    expect(screen.getAllByText(/50 Éter/i).length).toBeGreaterThanOrEqual(1);
+    // Click on the LAST card (Carta #3)
+    fireEvent.click(unrevealedCards[2]);
+
+    // Only 2 cards should remain unrevealed (cards 1 and 2 are still hidden, not revealed!)
+    const remainingUnrevealed = screen.getAllByRole("button", { name: /Clique para Revelar/i });
+    expect(remainingUnrevealed.length).toBe(2);
+
+    // Button to reveal all is still present
+    expect(screen.getByRole("button", { name: /Revelar Todas as Cartas/i })).toBeInTheDocument();
+
+    // Now click reveal all
+    fireEvent.click(screen.getByRole("button", { name: /Revelar Todas as Cartas/i }));
+
+    // All are revealed, finish button appears
+    expect(screen.queryByRole("button", { name: /Clique para Revelar/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Incorporar Cartas ao Meu Grimório/i })).toBeInTheDocument();
   });
 
   it("handles user registration through AuthModal and shows player identity in header", () => {

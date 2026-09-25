@@ -22,6 +22,7 @@ interface CloudwardensHeaderProps {
   onLogout: () => void;
   etherBalance: number;
   unopenedPacksCount: number;
+  isTutorialCompleted?: boolean;
 }
 
 export function CloudwardensHeader({
@@ -33,6 +34,7 @@ export function CloudwardensHeader({
   onLogout,
   etherBalance,
   unopenedPacksCount,
+  isTutorialCompleted,
 }: CloudwardensHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-forge-700/80 bg-forge-950/95 backdrop-blur-md">
@@ -54,17 +56,17 @@ export function CloudwardensHeader({
           <button
             type="button"
             onClick={() => onTabChange("intro")}
-            className="flex items-center gap-1.5 sm:gap-2 text-left cursor-pointer group"
+            className="flex items-center gap-2 sm:gap-2.5 text-left cursor-pointer group"
             title="Página Inicial do Jogo"
           >
-            <span className="text-amber-400 font-bold text-base transition-transform group-hover:scale-110">☁️</span>
-            <div>
-              <h1 className="font-mono text-sm sm:text-base font-bold tracking-wider text-bone flex items-center gap-1.5">
-                <span className="group-hover:text-amber-300 transition-colors">CLOUDWARDENS</span>
-                <span className="text-[10px] rounded border border-amber-600/50 bg-amber-950/60 px-1.5 py-0.2 text-amber-400 font-bold">
-                  TCG CLOUD
-                </span>
-              </h1>
+            <span className="text-amber-400 font-bold text-lg sm:text-xl transition-transform group-hover:scale-110">☁️</span>
+            <div className="flex flex-col justify-center leading-none">
+              <span className="font-mono text-xs sm:text-sm font-extrabold tracking-wider text-bone group-hover:text-amber-300 transition-colors">
+                CLOUDWARDENS
+              </span>
+              <span className="font-mono text-[8px] sm:text-[9px] font-bold tracking-[0.22em] text-amber-400/90 uppercase mt-0.5">
+                TCG CLOUD
+              </span>
             </div>
           </button>
         </div>
@@ -200,15 +202,17 @@ export function CloudwardensHeader({
             <span>{etherBalance} Éter</span>
           </button>
 
-          {/* Botão de Tutorial */}
-          <button
-            type="button"
-            onClick={onOpenTutorial}
-            title="Abrir Tutorial do Aprendiz"
-            className="cursor-pointer text-steel hover:text-amber-400 text-xs underline"
-          >
-            ❓ <span className="hidden sm:inline">Guia</span>
-          </button>
+          {/* Botão de Tutorial (Apenas visível se o tutorial NÃO tiver sido concluído) */}
+          {!isTutorialCompleted && (
+            <button
+              type="button"
+              onClick={onOpenTutorial}
+              title="Abrir Tutorial do Aprendiz"
+              className="cursor-pointer text-steel hover:text-amber-400 text-xs underline"
+            >
+              ❓ <span className="hidden sm:inline">Guia</span>
+            </button>
+          )}
 
           {/* Perfil do Guardião / Botão de Autenticação */}
           {user ? (

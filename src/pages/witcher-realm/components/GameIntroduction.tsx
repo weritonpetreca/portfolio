@@ -9,6 +9,7 @@ interface GameIntroductionProps {
 }
 
 export function GameIntroduction({
+  playerState,
   onNavigate,
   onOpenTutorial,
 }: GameIntroductionProps) {
@@ -48,13 +49,15 @@ export function GameIntroduction({
               Iniciar Modo Carreira ➔
             </button>
 
-            <button
-              type="button"
-              onClick={onOpenTutorial}
-              className="cursor-pointer rounded-lg border border-forge-700 bg-forge-900/90 px-5 py-3.5 text-amber-300 hover:border-amber-500/80 hover:bg-forge-800 transition-all hover:scale-105"
-            >
-              📜 Guia do Aprendiz (Tutorial)
-            </button>
+            {!playerState.isTutorialCompleted && (
+              <button
+                type="button"
+                onClick={onOpenTutorial}
+                className="cursor-pointer rounded-lg border border-forge-700 bg-forge-900/90 px-5 py-3.5 text-amber-300 hover:border-amber-500/80 hover:bg-forge-800 transition-all hover:scale-105"
+              >
+                📜 Guia do Aprendiz (Tutorial)
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -246,13 +249,23 @@ export function GameIntroduction({
             </div>
 
             <div className="pt-6">
-              <button
-                type="button"
-                onClick={onOpenTutorial}
-                className="w-full cursor-pointer rounded-lg border border-amber-500 bg-amber-500/10 py-2.5 font-mono text-xs font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
-              >
-                Abrir Tutorial do Jogo 📜
-              </button>
+              {playerState.isTutorialCompleted ? (
+                <button
+                  type="button"
+                  onClick={() => onNavigate("career")}
+                  className="w-full cursor-pointer rounded-lg border border-amber-500/60 bg-amber-500/10 py-2.5 font-mono text-xs font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
+                >
+                  Continuar no Modo Carreira ➔
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onOpenTutorial}
+                  className="w-full cursor-pointer rounded-lg border border-amber-500 bg-amber-500/10 py-2.5 font-mono text-xs font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition-all"
+                >
+                  Abrir Tutorial do Jogo 📜
+                </button>
+              )}
             </div>
           </div>
         </div>

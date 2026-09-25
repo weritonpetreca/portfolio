@@ -77,7 +77,11 @@ export function WitcherRealmPage() {
       <CloudwardensHeader
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onOpenTutorial={() => setActiveTab("tutorial")}
+        onOpenTutorial={() => {
+          if (!playerState.isTutorialCompleted) {
+            setActiveTab("tutorial");
+          }
+        }}
         user={playerState.user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onLogout={() => {
@@ -86,6 +90,7 @@ export function WitcherRealmPage() {
         }}
         etherBalance={playerState.etherCurrency}
         unopenedPacksCount={playerState.unopenedPacks.length}
+        isTutorialCompleted={playerState.isTutorialCompleted}
       />
 
       {/* Conteúdo Principal Dinâmico por Página Dedicada */}
@@ -94,7 +99,11 @@ export function WitcherRealmPage() {
           <GameIntroduction
             playerState={playerState}
             onNavigate={setActiveTab}
-            onOpenTutorial={() => setActiveTab("tutorial")}
+            onOpenTutorial={() => {
+              if (!playerState.isTutorialCompleted) {
+                setActiveTab("tutorial");
+              }
+            }}
             onOpenAuth={() => setIsAuthModalOpen(true)}
           />
         )}
@@ -116,7 +125,7 @@ export function WitcherRealmPage() {
             onNavigate={setActiveTab}
           />
         )}
-        {activeTab === "tutorial" && (
+        {activeTab === "tutorial" && !playerState.isTutorialCompleted && (
           <TutorialModal
             isOpen={true}
             onClose={() => setActiveTab("intro")}

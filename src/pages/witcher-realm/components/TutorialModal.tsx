@@ -88,11 +88,6 @@ export function TutorialModal({
   const iamCard = starterCards.find((c) => c.id === "guardian-iam");
 
   const handleNextStep = () => {
-    // Se o usuário já concluiu o tutorial anteriormente, pular direto da questão para a revisão (Passo 5)
-    if (currentStep === 3 && playerState.isTutorialCompleted) {
-      setCurrentStep(5);
-      return;
-    }
     if (currentStep < 5) {
       setCurrentStep((prev) => prev + 1);
     } else {

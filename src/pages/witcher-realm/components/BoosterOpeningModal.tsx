@@ -14,7 +14,7 @@ export function BoosterOpeningModal({
 }: BoosterOpeningModalProps) {
   const [openingPack, setOpeningPack] = useState<BoosterPack | null>(null);
   const [drawnCards, setDrawnCards] = useState<Card[]>([]);
-  const [revealedCount, setRevealedCount] = useState(0);
+  const [revealedIndices, setRevealedIndices] = useState<number[]>([]);
 
   const unopenedPacks = playerState.unopenedPacks;
   const streak = playerState.dailyStreak;
@@ -23,11 +23,15 @@ export function BoosterOpeningModal({
     const cards = openBoosterPack(pack);
     setOpeningPack(pack);
     setDrawnCards(cards);
-    setRevealedCount(0);
+    setRevealedIndices([]);
+  };
+
+  const handleRevealCard = (idx: number) => {
+    setRevealedIndices((prev) => (prev.includes(idx) ? prev : [...prev, idx]));
   };
 
   const handleRevealAll = () => {
-    setRevealedCount(drawnCards.length);
+    setRevealedIndices(drawnCards.map((_, i) => i));
   };
 
   const handleFinishOpening = () => {
@@ -44,7 +48,7 @@ export function BoosterOpeningModal({
 
     setOpeningPack(null);
     setDrawnCards([]);
-    setRevealedCount(0);
+    setRevealedIndices([]);
   };
 
   const handleClaimDailyStreak = () => {
@@ -233,7 +237,7 @@ export function BoosterOpeningModal({
             {/* Grid das cartas sorteadas */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 justify-items-center">
               {drawnCards.map((card, idx) => {
-                const isRevealed = idx < revealedCount;
+                const isRevealed = revealedIndices.includes(idx);
 
                 return (
                   <div key={`${card.id}-${idx}`} className="flex flex-col items-center">
@@ -244,7 +248,7 @@ export function BoosterOpeningModal({
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setRevealedCount((prev) => Math.max(prev, idx + 1))}
+                        onClick={() => handleRevealCard(idx)}
                         className="cursor-pointer flex h-[330px] w-[215px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-amber-500/70 bg-gradient-to-b from-forge-950 to-black p-4 text-center hover:border-amber-400 hover:scale-103 transition-all shadow-xl group"
                       >
                         <span className="text-4xl group-hover:scale-110 transition-transform">
@@ -265,7 +269,7 @@ export function BoosterOpeningModal({
 
             {/* Ações da Abertura */}
             <div className="mt-6 pt-4 border-t border-forge-800 flex items-center justify-center gap-4">
-              {revealedCount < drawnCards.length ? (
+              {revealedIndices.length < drawnCards.length ? (
                 <button
                   type="button"
                   onClick={handleRevealAll}
