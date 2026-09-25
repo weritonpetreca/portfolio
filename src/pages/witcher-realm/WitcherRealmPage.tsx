@@ -42,12 +42,19 @@ export function WitcherRealmPage() {
   }, [playerState.isTutorialCompleted, playerState.unlockedCardIds.length]);
 
   const handleCompleteTutorial = () => {
-    handleUpdatePlayerState((prev) => ({
-      ...prev,
-      isTutorialCompleted: true,
-      etherCurrency: prev.etherCurrency + 150,
-      unlockedCardIds: Array.from(new Set([...prev.unlockedCardIds, ...STARTER_CARD_IDS])),
-    }));
+    if (playerState.isTutorialCompleted) {
+      setIsTutorialOpen(false);
+      return;
+    }
+    handleUpdatePlayerState((prev) => {
+      if (prev.isTutorialCompleted) return prev;
+      return {
+        ...prev,
+        isTutorialCompleted: true,
+        etherCurrency: prev.etherCurrency + 150,
+        unlockedCardIds: Array.from(new Set([...prev.unlockedCardIds, ...STARTER_CARD_IDS])),
+      };
+    });
     setIsTutorialOpen(false);
   };
 

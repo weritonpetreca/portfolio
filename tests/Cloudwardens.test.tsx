@@ -103,4 +103,45 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
 
     expect(screen.getByText(/Justificativa Oficial da AWS/i)).toBeInTheDocument();
   });
+
+  it("does not award duplicate Éter if tutorial is already completed", () => {
+    localStorage.setItem(
+      "cloudwardens_player_save_v1",
+      JSON.stringify({ isTutorialCompleted: true, etherCurrency: 50 })
+    );
+
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    // Initial ether is 50
+    expect(screen.getByText(/50 Éter/i)).toBeInTheDocument();
+
+    // Open tutorial from header
+    const tutorialBtn = screen.getByRole("button", { name: /Tutorial/i });
+    fireEvent.click(tutorialBtn);
+
+    // Modal is open
+    expect(screen.getByText(/GUIA DO APRENDIZ/i)).toBeInTheDocument();
+
+    // Advance step 1 -> step 2
+    fireEvent.click(screen.getByRole("button", { name: /Aceitar a Convocação/i }));
+
+    // Advance step 2 -> step 3
+    fireEvent.click(screen.getByRole("button", { name: /Receber Cartas e Prosseguir/i }));
+
+    // Advance step 3: answer question then claim
+    const modalButtons = screen.getAllByRole("button", { name: /Multi-AZ/i });
+    fireEvent.click(modalButtons[modalButtons.length - 1]);
+    fireEvent.click(screen.getByRole("button", { name: /Reivindicar Recompensa/i }));
+
+    // Step 4 shows already completed review state
+    expect(screen.getByText(/TUTORIAL JÁ CONCLUÍDO/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Concluir Revisão/i }));
+
+    // Ether balance should remain 50, not 200
+    expect(screen.getByText(/50 Éter/i)).toBeInTheDocument();
+  });
 });

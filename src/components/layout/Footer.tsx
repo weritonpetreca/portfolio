@@ -52,7 +52,42 @@ export function Footer() {
           </a>
         </div>
 
-        {/* Linha Inferior: Direitos Autorais + Tech Stack + Código Fonte + Witcher Realm */}
+        {/* Banner de Destaque Oficial: Cloudwardens */}
+        <div className="relative overflow-hidden rounded-xl border border-amber-500/40 bg-gradient-to-r from-forge-900 via-forge-950 to-amber-950/40 p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.8),0_0_20px_rgba(245,158,11,0.15)] font-mono">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-amber-500/60 bg-amber-950/70 text-3xl shadow-[0_0_20px_rgba(245,158,11,0.35)]">
+                ☁️
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs uppercase tracking-widest text-amber-400 font-bold">
+                    PROJETO AUTORAL EM DESTAQUE
+                  </span>
+                  <span className="rounded border border-amber-600/40 bg-amber-950/80 px-1.5 py-0.2 text-[10px] text-amber-300 font-semibold">
+                    SKILL BUILDER + CARD GAME
+                  </span>
+                </div>
+                <h4 className="mt-1 font-display text-lg sm:text-xl font-bold text-bone">
+                  Cloudwardens: O Domínio de Âmbar
+                </h4>
+                <p className="mt-1 font-sans text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+                  Aprenda arquitetura de nuvem AWS de forma gamificada com trilhas de carreira, simulados oficiais para certificações (CLF-C02), abertura de boosters e montagem de decks táticos.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to="/witcher-realm"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-amber-500/80 bg-gradient-to-r from-amber-600 to-amber-500 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black shadow-lg transition-all duration-200 hover:from-amber-500 hover:to-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] cursor-pointer"
+            >
+              <span>Acessar Cloudwardens</span>
+              <span>➔</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Linha Inferior: Direitos Autorais + Tech Stack + Código Fonte */}
         <div className="flex flex-col gap-4 border-t border-forge-700/60 pt-6 sm:flex-row sm:items-center sm:justify-between font-mono text-xs sm:text-sm">
           
           <div className="flex flex-wrap items-center gap-2 text-slate-300">
@@ -80,16 +115,15 @@ export function Footer() {
             </button>
           </div>
 
-          {/* RF-03: ponto de entrada único e discreto para a segunda persona */}
           <Link
             to="/witcher-realm"
-            className="group inline-flex items-center gap-2.5 font-medium italic text-slate-400 transition-all duration-300 hover:text-amber-400"
+            className="group inline-flex items-center gap-2 font-mono text-xs text-amber-400/90 transition-colors hover:text-amber-300"
           >
-            <span className="text-base sm:text-lg transition-transform duration-300 group-hover:rotate-12">🐺</span>
-            <span className="group-hover:underline group-hover:decoration-amber-400">
-              Nas horas vagas, também exploro outros reinos
+            <span>☁️</span>
+            <span className="underline decoration-amber-500/50 underline-offset-4 font-bold">
+              Explorar Cloudwardens
             </span>
-            <span className="transition-transform duration-300 group-hover:translate-x-1 text-amber-500">→</span>
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </Link>
 
         </div>

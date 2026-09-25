@@ -177,57 +177,86 @@ export function Hero() {
             {/* Estrutura Única: Moldura Forjada com Cavidades de Gemas */}
             <div className="flex shrink-0 flex-col items-center self-center sm:self-start">
               
-              <div className="relative flex flex-col items-center rounded-xl border-2 border-amber-600/60 bg-gradient-to-b from-forge-900 via-forge-950 to-black p-3 shadow-[0_10px_30px_rgba(0,0,0,0.9),0_0_15px_rgba(210,69,31,0.2)]">
+              <div className="relative w-[216px] shrink-0 flex flex-col items-center rounded-xl border-2 border-amber-600/60 bg-gradient-to-b from-forge-900 via-forge-950 to-black p-3 shadow-[0_10px_30px_rgba(0,0,0,0.9),0_0_15px_rgba(210,69,31,0.2)]">
                 
                 {/* Foto Hexagonal Embutida com Borda de Ouro Forjado */}
-                <div className="relative flex items-center justify-center p-[2px] bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)] shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                  <div className="h-44 w-40 overflow-hidden bg-forge-950 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)]">
+                <div
+                  className="relative flex shrink-0 items-center justify-center p-[2px] bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)] shadow-[0_0_15px_rgba(245,158,11,0.3)] select-none"
+                  style={{ willChange: "transform", transform: "translateZ(0)" }}
+                >
+                  <div className="h-44 w-40 shrink-0 overflow-hidden bg-forge-950 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)]">
                     <img
                       src="/profile-photo.jpg"
                       alt="Weriton Luis Petreca"
-                      className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                      width={160}
+                      height={176}
+                      className="h-full w-full object-cover pointer-events-none select-none"
                     />
                   </div>
                 </div>
 
                 {/* Divisor Metálico Interno da Moldura */}
-                <div className="my-2.5 h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
+                <div className="my-2.5 h-[2px] w-full shrink-0 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
 
                 {/* Cavidades/Soquetes Encravados (Insígnias de Poder) */}
-                <div className="flex items-center justify-center gap-2.5 rounded-lg bg-black/70 p-1.5 shadow-[inset_0_3px_8px_rgba(0,0,0,0.95)] border border-forge-800">
-                  {EQUIPPED_BADGES.map((badge) => (
-                    <a
-                      key={badge.id}
-                      href={badge.href}
-                      target={badge.isExternal ? "_blank" : undefined}
-                      rel={badge.isExternal ? "noopener noreferrer" : undefined}
-                      aria-label={`Ver credencial oficial: ${badge.title}`}
-                      onMouseEnter={() => setHoveredBadge(badge.title)}
-                      onMouseLeave={() => setHoveredBadge(null)}
-                      className="group relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-md border border-forge-900 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] transition-all duration-300 hover:border-amber-400 hover:scale-105 hover:shadow-[0_0_14px_rgba(245,158,11,0.6),inset_0_0_8px_rgba(245,158,11,0.3)]"
-                    >
-                      <img
-                        src={badge.image}
-                        alt={badge.title}
-                        className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110"
-                      />
-                    </a>
-                  ))}
+                <div className="w-full shrink-0 flex items-center justify-center gap-2 rounded-lg bg-black/80 p-2 shadow-[inset_0_3px_8px_rgba(0,0,0,0.95)] border border-forge-800/90">
+                  {EQUIPPED_BADGES.map((badge) => {
+                    const isHovered = hoveredBadge === badge.title;
+                    return (
+                      <a
+                        key={badge.id}
+                        href={badge.href}
+                        target={badge.isExternal ? "_blank" : undefined}
+                        rel={badge.isExternal ? "noopener noreferrer" : undefined}
+                        aria-label={`Ver credencial oficial: ${badge.title}`}
+                        onMouseEnter={() => setHoveredBadge(badge.title)}
+                        onMouseLeave={() => setHoveredBadge(null)}
+                        className={`relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-all duration-200 ${
+                          isHovered
+                            ? "border-amber-400 bg-amber-950/50 shadow-[0_0_16px_rgba(245,158,11,0.6),inset_0_0_8px_rgba(245,158,11,0.25)]"
+                            : "border-forge-800 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] hover:border-amber-500/70"
+                        }`}
+                      >
+                        <img
+                          src={badge.image}
+                          alt={badge.title}
+                          width={30}
+                          height={30}
+                          className={`h-7.5 w-7.5 object-contain pointer-events-none select-none transition-transform duration-200 ${
+                            isHovered ? "scale-110 drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]" : "opacity-90"
+                          }`}
+                        />
+                      </a>
+                    );
+                  })}
                 </div>
 
-                {/* Micro-painel de Insígnia Ativa (Sem sobrepor ou cortar o retrato) */}
-                <div className="mt-2 flex h-5 w-full items-center justify-center text-center">
-                  <p className="font-mono text-[10.5px] uppercase tracking-wider transition-all duration-200">
-                    {hoveredBadge ? (
-                      <span className="font-bold text-amber-400 flex items-center justify-center gap-1">
-                        <span>🏆</span>
-                        <span className="truncate max-w-[155px]">{hoveredBadge}</span>
-                        <span className="text-[9px] text-amber-500">↗</span>
-                      </span>
-                    ) : (
-                      <span className="text-steel/60">3 Insígnias · Toque p/ abrir</span>
-                    )}
-                  </p>
+                {/* Micro-painel de Insígnia Ativa com crossfade estável sem layout shift */}
+                <div className="relative mt-2 h-7 w-full shrink-0 flex items-center justify-center px-1 font-mono text-[10px]">
+                  {/* Estado Padrão */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center gap-1 text-steel/70 transition-opacity duration-200 ${
+                      hoveredBadge ? "opacity-0 pointer-events-none" : "opacity-100"
+                    }`}
+                  >
+                    <span>🛡️</span>
+                    <span className="tracking-wider uppercase font-semibold">
+                      3 Certificações Oficiais
+                    </span>
+                  </div>
+
+                  {/* Estado Hover com Título Ativo */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center gap-1 text-amber-300 font-bold transition-opacity duration-200 ${
+                      hoveredBadge ? "opacity-100" : "opacity-0 pointer-events-none"
+                    }`}
+                  >
+                    <span className="text-amber-400">🏆</span>
+                    <span className="truncate max-w-[155px] text-center" title={hoveredBadge ?? ""}>
+                      {hoveredBadge}
+                    </span>
+                    <span className="text-[9px] text-amber-400 shrink-0">↗</span>
+                  </div>
                 </div>
 
               </div>

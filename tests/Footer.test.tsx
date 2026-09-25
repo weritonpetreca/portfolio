@@ -49,14 +49,15 @@ describe("Footer", () => {
     ).toBeInTheDocument();
   });
 
-  it("linka para o portal da Witcher Realm", () => {
+  it("linka para o universo Cloudwardens", () => {
     render(
       <MemoryRouter>
         <Footer />
       </MemoryRouter>,
     );
 
-    const portalLink = screen.getByRole("link", { name: /outros reinos/i });
-    expect(portalLink).toHaveAttribute("href", "/witcher-realm");
+    const portalLinks = screen.getAllByRole("link", { name: /cloudwardens/i });
+    expect(portalLinks.length).toBeGreaterThanOrEqual(1);
+    expect(portalLinks[0]).toHaveAttribute("href", "/witcher-realm");
   });
 });

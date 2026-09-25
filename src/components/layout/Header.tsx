@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { Link } from "react-router";
 
 const NAV_ITEMS = [
   { label: "Habilidades", href: "#habilidades" },
@@ -43,8 +44,8 @@ export function Header() {
           </span>
         </a>
 
-        {/* Menu de Navegação Rápida */}
-        <nav className="flex items-center gap-3 sm:gap-6 font-mono text-xs font-bold uppercase tracking-wider text-steel">
+        {/* Menu de Navegação Rápida + Destaque Cloudwardens */}
+        <nav className="flex items-center gap-2.5 sm:gap-5 font-mono text-xs font-bold uppercase tracking-wider text-steel">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.label}
@@ -53,12 +54,25 @@ export function Header() {
               className={`transition-all duration-200 hover:-translate-y-0.5 hover:text-amber-400 ${
                 item.label === "Contato"
                   ? "rounded-md border border-amber-600/50 bg-forge-900/90 px-3 py-1.5 text-amber-400 hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_12px_rgba(245,158,11,0.2)]"
-                  : "hidden sm:inline-block"
+                  : "hidden md:inline-block"
               }`}
             >
               {item.label}
             </a>
           ))}
+
+          {/* Destaque Cloudwardens no Topo */}
+          <Link
+            to="/witcher-realm"
+            className="flex items-center gap-1.5 rounded-full border border-amber-500/60 bg-gradient-to-r from-amber-950/80 via-forge-900 to-amber-950/80 px-2.5 py-1 text-xs text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)] transition-all duration-200 hover:border-amber-400 hover:scale-105 hover:text-amber-200 hover:shadow-[0_0_18px_rgba(245,158,11,0.45)]"
+            title="Conheça o Cloudwardens: Skill Builder & Jogo de Cartas AWS"
+          >
+            <span className="text-sm">☁️</span>
+            <span className="tracking-wide">CLOUDWARDENS</span>
+            <span className="hidden sm:inline rounded bg-amber-500/20 px-1 py-0.2 text-[10px] text-amber-400 font-bold">
+              GAME
+            </span>
+          </Link>
         </nav>
 
       </div>

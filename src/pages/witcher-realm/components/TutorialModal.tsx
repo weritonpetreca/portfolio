@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CLOUDWARDENS_CARDS } from "../../../data/cloudwardens/cards";
 import { STARTER_CARD_IDS } from "../../../data/cloudwardens/playerState";
 import type { PlayerGameState } from "../../../data/cloudwardens/types";
@@ -15,10 +15,19 @@ export function TutorialModal({
   isOpen,
   onClose,
   onCompleteTutorial,
+  playerState,
 }: TutorialModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isQuestionAnswered, setIsQuestionAnswered] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStep(1);
+      setSelectedOption(null);
+      setIsQuestionAnswered(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -199,23 +208,42 @@ export function TutorialModal({
               🎁
             </div>
 
-            <div>
-              <span className="text-xs uppercase tracking-widest text-amber-400 font-bold">
-                TUTORIAL CONCLUÍDO COM SUCESSO!
-              </span>
-              <h3 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-bone">
-                Você é Oficialmente um Cloudwarden
-              </h3>
-              <p className="mt-2 font-sans text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                A guilda recompensou sua dedicação com:
-              </p>
-              
-              <div className="mt-4 inline-flex flex-col sm:flex-row items-center gap-3 p-3 rounded-lg border border-amber-600/50 bg-amber-950/40 text-xs">
-                <span className="text-amber-300 font-bold">⚡ +150 Unidades de Éter</span>
-                <span className="hidden sm:inline text-steel">•</span>
-                <span className="text-amber-300 font-bold">📦 1x Booster Pack de Boas-Vindas da Guilda</span>
+            {playerState.isTutorialCompleted ? (
+              <div>
+                <span className="text-xs uppercase tracking-widest text-emerald-400 font-bold">
+                  TUTORIAL JÁ CONCLUÍDO
+                </span>
+                <h3 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-bone">
+                  Revisão do Aprendiz Finalizada
+                </h3>
+                <p className="mt-2 font-sans text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+                  Você já resgatou o bônus inicial de +150 Éter e o Booster de Boas-Vindas da Guilda. Seu progresso foi salvo com sucesso.
+                </p>
+                <div className="mt-4 inline-flex items-center gap-2 p-3 rounded-lg border border-emerald-600/50 bg-emerald-950/40 text-xs text-emerald-300">
+                  <span>✓ Cartas Iniciais Desbloqueadas</span>
+                  <span>•</span>
+                  <span>Saldo de Éter Ativo</span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <span className="text-xs uppercase tracking-widest text-amber-400 font-bold">
+                  TUTORIAL CONCLUÍDO COM SUCESSO!
+                </span>
+                <h3 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-bone">
+                  Você é Oficialmente um Cloudwarden
+                </h3>
+                <p className="mt-2 font-sans text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+                  A guilda recompensou sua dedicação com:
+                </p>
+                
+                <div className="mt-4 inline-flex flex-col sm:flex-row items-center gap-3 p-3 rounded-lg border border-amber-600/50 bg-amber-950/40 text-xs">
+                  <span className="text-amber-300 font-bold">⚡ +150 Unidades de Éter</span>
+                  <span className="hidden sm:inline text-steel">•</span>
+                  <span className="text-amber-300 font-bold">📦 1x Booster Pack de Boas-Vindas da Guilda</span>
+                </div>
+              </div>
+            )}
 
             <div className="pt-4">
               <button
@@ -223,7 +251,7 @@ export function TutorialModal({
                 onClick={handleNextStep}
                 className="cursor-pointer rounded-md bg-emerald-600 px-8 py-3 text-xs font-bold uppercase tracking-wider text-bone hover:bg-emerald-500 transition-colors shadow-lg"
               >
-                Abrir Meus Pacotes & Iniciar Jornada ➔
+                {playerState.isTutorialCompleted ? "Concluir Revisão ➔" : "Abrir Meus Pacotes & Iniciar Jornada ➔"}
               </button>
             </div>
           </div>
