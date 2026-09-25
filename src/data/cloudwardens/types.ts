@@ -8,6 +8,17 @@ export type CloudDomain =
 
 export type CardRarity = "common" | "rare" | "epic" | "legendary";
 
+export type CardFunctionalTag =
+  | "compute"
+  | "storage"
+  | "database"
+  | "security"
+  | "networking"
+  | "edge"
+  | "serverless"
+  | "messaging"
+  | "finops";
+
 export interface Card {
   id: string;
   name: string; // Nome autoral da fantasia medieval
@@ -26,20 +37,66 @@ export interface Card {
   counters?: string[]; // IDs de anomalias que esta carta derrota com dano crítico
   runeSymbol: string; // Glifo rúnico
   level?: number; // Nível da carta: 1 (base), 2 (forjada), 3 (mestre holográfica)
-  synergyTags?: string[]; // Tags de sinergia: "serverless", "storage", "database", "edge", "security", "compute"
-  artPrompt?: string; // Prompt refinado em inglês para geração de arte em IA (Nano Banana, Midjourney, Imagen)
+  synergyTags?: CardFunctionalTag[]; // Tags de sinergia
+  artPrompt?: string; // Prompt refinado em inglês para geração de arte em IA
   imageUrl?: string; // URL da ilustração oficial
 }
 
 export interface CardSynergy {
   id: string;
   name: string;
-  requiredTags: string[];
+  requiredTags: CardFunctionalTag[];
   description: string;
   bonusPower: number;
   bonusDefense: number;
   bonusEther?: number;
   healFortress?: number;
+}
+
+export interface SavedDeck {
+  id: string;
+  slotIndex: 1 | 2 | 3;
+  name: string;
+  cardIds: string[]; // 8 a 10 cartas
+}
+
+export interface BoosterPack {
+  id: string;
+  name: string;
+  description: string;
+  cardsCount: number;
+  guaranteedRarity?: CardRarity;
+  isFoilBooster?: boolean;
+}
+
+export interface DailyStreakState {
+  currentStreakDays: number;
+  lastClaimedDate: string | null;
+  canClaimToday: boolean;
+}
+
+export interface PlayerGameState {
+  unlockedCardIds: string[];
+  savedDecks: SavedDeck[];
+  activeDeckId: string;
+  unopenedPacks: BoosterPack[];
+  etherCurrency: number;
+  dailyStreak: DailyStreakState;
+  isTutorialCompleted: boolean;
+}
+
+export interface WeeklyEventChallenge {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  allowedTags?: CardFunctionalTag[];
+  forbiddenTags?: CardFunctionalTag[];
+  maxTotalEtherCost?: number;
+  rewardPack: BoosterPack;
+  rewardEther: number;
+  targetAnomalyId: string;
+  activeUntil: string;
 }
 
 export interface ExamQuestion {
@@ -65,4 +122,27 @@ export interface QuestTrial {
   targetAnomalyId: string;
   rewardCardId: string;
   questionIds: string[];
+}
+
+export interface CareerTrackNode {
+  id: string;
+  order: number;
+  title: string;
+  category: CardFunctionalTag;
+  awsService: string;
+  storyLore: string;
+  technicalConcept: string;
+  examQuestionIds: string[];
+  rewardCardId: string;
+  targetAnomalyId: string;
+}
+
+export interface CareerTrack {
+  id: string;
+  provider: "aws" | "azure" | "gcp" | "multicloud";
+  examCode: string;
+  title: string;
+  level: "foundational" | "associate" | "deep-dive";
+  description: string;
+  nodes: CareerTrackNode[];
 }

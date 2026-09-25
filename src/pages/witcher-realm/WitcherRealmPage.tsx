@@ -1,31 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { Seo } from "../../components/layout/Seo.tsx";
 import {
   CloudwardensHeader,
   type CloudwardensTab,
 } from "./components/CloudwardensHeader";
+import { CareerMode } from "./components/CareerMode";
+import { DeckBuilder } from "./components/DeckBuilder";
 import { DeckShowcase } from "./components/DeckShowcase";
 import { DuelArena } from "./components/DuelArena";
 import { OracleSimulado } from "./components/OracleSimulado";
+import { BoosterOpeningModal } from "./components/BoosterOpeningModal";
+import { TutorialModal } from "./components/TutorialModal";
+import {
+  loadPlayerState,
+  savePlayerState,
+  STARTER_CARD_IDS,
+} from "../../data/cloudwardens/playerState";
+import type { PlayerGameState } from "../../data/cloudwardens/types";
 
 export function WitcherRealmPage() {
-  const [activeTab, setActiveTab] = useState<CloudwardensTab>("deck");
+  const [activeTab, setActiveTab] = useState<CloudwardensTab>("career");
+  const [playerState, setPlayerStateInternal] = useState<PlayerGameState>(loadPlayerState);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+
+  // Sincroniza e persiste alterações no localStorage
+  const handleUpdatePlayerState = (updater: (prev: PlayerGameState) => PlayerGameState) => {
+    setPlayerStateInternal((prev) => {
+      const next = updater(prev);
+      savePlayerState(next);
+      return next;
+    });
+  };
+
+  // Abre tutorial na primeira vez se não tiver sido concluído
+  useEffect(() => {
+    if (!playerState.isTutorialCompleted && playerState.unlockedCardIds.length <= STARTER_CARD_IDS.length) {
+      const timer = setTimeout(() => setIsTutorialOpen(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [playerState.isTutorialCompleted, playerState.unlockedCardIds.length]);
+
+  const handleCompleteTutorial = () => {
+    handleUpdatePlayerState((prev) => ({
+      ...prev,
+      isTutorialCompleted: true,
+      etherCurrency: prev.etherCurrency + 150,
+      unlockedCardIds: Array.from(new Set([...prev.unlockedCardIds, ...STARTER_CARD_IDS])),
+    }));
+    setIsTutorialOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-forge-950 text-bone selection:bg-amber-500/30 selection:text-amber-200">
       <Seo
-        title="Cloudwardens — O Domínio de Âmbar | Jogo de Cartas & Simulados AWS CLF-C02"
-        description="Aprenda arquitetura de nuvem AWS e estude para a certificação AWS Certified Cloud Practitioner (CLF-C02) através de um jogo tático de cartas e simulados interativos no universo Cloudwardens."
+        title="Cloudwardens — Skill Builder & Jogo de Cartas de Nuvem AWS"
+        description="Aprenda arquitetura de nuvem AWS e estude para certificações com trilhas de carreira, deckbuilder tático, abertura de boosters e simulados interativos no universo Cloudwardens."
         path="/witcher-realm"
         favicon="/witcher-favicon.ico"
       />
 
-      {/* Header com Navegação Tática */}
-      <CloudwardensHeader activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Header com Navegação e Recursos */}
+      <CloudwardensHeader
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onOpenTutorial={() => setIsTutorialOpen(true)}
+        etherBalance={playerState.etherCurrency}
+        unopenedPacksCount={playerState.unopenedPacks.length}
+      />
 
       {/* Hero Banner Imersivo */}
-      <section className="relative overflow-hidden border-b border-forge-700/60 bg-gradient-to-b from-forge-900 via-forge-950 to-forge-950 py-12 px-4 sm:px-6">
+      <section className="relative overflow-hidden border-b border-forge-700/60 bg-gradient-to-b from-forge-900 via-forge-950 to-forge-950 py-10 px-4 sm:px-6">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.12),transparent_70%)] pointer-events-none" />
         
         <div className="relative mx-auto max-w-5xl text-center">
@@ -38,34 +83,60 @@ export function WitcherRealmPage() {
             O Domínio de Âmbar: <span className="text-forged-gold">Cloudwardens</span>
           </h2>
 
-          <p className="mx-auto mt-4 max-w-2xl font-sans text-sm sm:text-base text-slate-300 leading-relaxed">
-            Nas fronteiras da computação em nuvem, anomalias e gargalos ameaçam a estabilidade dos sistemas. 
-            Empunhe os serviços gerenciados da <strong>AWS</strong> como feitiços arquiteturais, proteja sua fortaleza em duelos táticos e domine o conteúdo da certificação <strong>AWS Certified Cloud Practitioner (CLF-C02)</strong> com simulados reais e justificativas detalhadas.
+          <p className="mx-auto mt-3 max-w-2xl font-sans text-sm sm:text-base text-slate-300 leading-relaxed">
+            Evolua no <strong>Modo Carreira</strong> através de trilhas profundas por serviço, monte seu baralho no <strong>Deckbuilder</strong>, abra <strong>Boosters</strong> com cartas raras e domine as certificações da AWS com simulados comentados.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 font-mono text-xs text-steel">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 font-mono text-xs text-steel">
             <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
-              ⚡ 12 Cartas Base
+              🧭 Modo Carreira & Skill Tree
             </span>
             <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
-              ⚔️ Arena de Combate Tático
+              🛠️ Deckbuilder com 3 Slots
             </span>
             <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
-              📜 Simulado CLF-C02 com Justificativas
+              🎁 Boosters & Recompensas Diárias
             </span>
             <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
-              🏆 Provas de Mestria (Side Quests)
+              ⚔️ Arena de Resolução de Incidentes
             </span>
           </div>
         </div>
       </section>
 
       {/* Conteúdo Principal Dinâmico por Aba */}
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
-        {activeTab === "deck" && <DeckShowcase />}
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
+        {activeTab === "career" && (
+          <CareerMode
+            playerState={playerState}
+            onSelectBattleAnomaly={(_id) => setActiveTab("arena")}
+            onOpenDeckBuilder={() => setActiveTab("deckbuilder")}
+          />
+        )}
+        {activeTab === "deckbuilder" && (
+          <DeckBuilder
+            playerState={playerState}
+            onUpdatePlayerState={handleUpdatePlayerState}
+          />
+        )}
         {activeTab === "arena" && <DuelArena />}
+        {activeTab === "boosters" && (
+          <BoosterOpeningModal
+            playerState={playerState}
+            onUpdatePlayerState={handleUpdatePlayerState}
+          />
+        )}
+        {activeTab === "deck" && <DeckShowcase />}
         {activeTab === "oracle" && <OracleSimulado />}
       </main>
+
+      {/* Modal de Tutorial Interativo do Aprendiz */}
+      <TutorialModal
+        isOpen={isTutorialOpen}
+        onClose={() => setIsTutorialOpen(false)}
+        onCompleteTutorial={handleCompleteTutorial}
+        playerState={playerState}
+      />
 
       {/* Rodapé do Universo & Conformidade */}
       <footer className="mt-20 border-t border-forge-800 bg-black/80 py-10 px-4 sm:px-6 font-mono text-xs text-steel">
@@ -79,13 +150,21 @@ export function WitcherRealmPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-xs">
             <button
               type="button"
-              onClick={() => setActiveTab("deck")}
+              onClick={() => setActiveTab("career")}
               className="hover:text-amber-400 cursor-pointer"
             >
-              Grimório
+              Carreira
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => setActiveTab("deckbuilder")}
+              className="hover:text-amber-400 cursor-pointer"
+            >
+              Decks
             </button>
             <span>•</span>
             <button
@@ -98,10 +177,10 @@ export function WitcherRealmPage() {
             <span>•</span>
             <button
               type="button"
-              onClick={() => setActiveTab("oracle")}
+              onClick={() => setActiveTab("boosters")}
               className="hover:text-amber-400 cursor-pointer"
             >
-              Simulado
+              Boosters
             </button>
             <span>•</span>
             <Link

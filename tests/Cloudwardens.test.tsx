@@ -1,10 +1,19 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, beforeEach } from "vitest";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { WitcherRealmPage } from "../src/pages/witcher-realm/WitcherRealmPage";
 
 describe("Cloudwardens (WitcherRealmPage)", () => {
-  it("renders the hero title and Grimório by default", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    // Marca tutorial como concluído para os testes focarem nos componentes
+    localStorage.setItem(
+      "cloudwardens_player_save_v1",
+      JSON.stringify({ isTutorialCompleted: true })
+    );
+  });
+
+  it("renders Modo Carreira and Skill Tree by default", () => {
     render(
       <MemoryRouter>
         <WitcherRealmPage />
@@ -12,19 +21,51 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     );
 
     expect(screen.getAllByText(/CLOUDWARDENS/i)[0]).toBeInTheDocument();
-    expect(screen.getByText(/O Grimório do Guardião da Nuvem/i)).toBeInTheDocument();
-    expect(screen.getByText(/O Cofre Inviolável/i)).toBeInTheDocument();
+    expect(screen.getByText(/Trilhas de Formação & Certificações/i)).toBeInTheDocument();
+    expect(screen.getByText(/Rota de Progressão da Carreira/i)).toBeInTheDocument();
   });
 
-  it("switches to Arena de Duelo tab and plays a card", () => {
+  it("switches to Deckbuilder tab and displays slots", () => {
     render(
       <MemoryRouter>
         <WitcherRealmPage />
       </MemoryRouter>
     );
 
-    // Click on Arena tab
-    const arenaBtn = screen.getByRole("button", { name: /Arena de Duelo/i });
+    const nav = screen.getByRole("navigation");
+    const deckbuilderBtn = within(nav).getByRole("button", { name: /Decks/i });
+    fireEvent.click(deckbuilderBtn);
+
+    expect(screen.getByText(/Construção & Gestão de Decks/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Slot 1/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Slot 2/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Slot 3/i })).toBeInTheDocument();
+  });
+
+  it("switches to Boosters tab and displays daily streak", () => {
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    const nav = screen.getByRole("navigation");
+    const boostersBtn = within(nav).getByRole("button", { name: /Boosters/i });
+    fireEvent.click(boostersBtn);
+
+    expect(screen.getByText(/DISCIPLINA DOS CLOUDWARDENS · STREAK DIÁRIO/i)).toBeInTheDocument();
+    expect(screen.getByText(/Seus Pacotes Disponíveis para Abertura/i)).toBeInTheDocument();
+  });
+
+  it("switches to Arena tab and plays a card", () => {
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    const nav = screen.getByRole("navigation");
+    const arenaBtn = within(nav).getByRole("button", { name: /Arena/i });
     fireEvent.click(arenaBtn);
 
     expect(screen.getByText(/Saúde da Fortaleza/i)).toBeInTheDocument();
@@ -38,15 +79,15 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     expect(screen.getByText(/Log da Batalha/i)).toBeInTheDocument();
   });
 
-  it("switches to Simulado & Quests tab and answers question", () => {
+  it("switches to Simulado tab and answers question", () => {
     render(
       <MemoryRouter>
         <WitcherRealmPage />
       </MemoryRouter>
     );
 
-    // Click on Simulado tab
-    const simuladoBtn = screen.getByRole("button", { name: /Simulado & Quests/i });
+    const nav = screen.getByRole("navigation");
+    const simuladoBtn = within(nav).getByRole("button", { name: /Simulado/i });
     fireEvent.click(simuladoBtn);
 
     expect(screen.getByText(/O ORÁCULO DE CERTIFICAÇÃO/i)).toBeInTheDocument();
@@ -60,7 +101,6 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     const confirmBtn = screen.getByRole("button", { name: /Confirmar Resposta/i });
     fireEvent.click(confirmBtn);
 
-    // Justification/explanation should appear
     expect(screen.getByText(/Justificativa Oficial da AWS/i)).toBeInTheDocument();
   });
 });
