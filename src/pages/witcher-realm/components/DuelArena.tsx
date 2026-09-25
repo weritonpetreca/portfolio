@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { CLOUDWARDENS_CARDS, CLOUDWARDENS_SYNERGIES } from "../../../data/cloudwardens/cards";
-import type { Card, CardSynergy } from "../../../data/cloudwardens/types";
+import type { Card, CardSynergy, PlayerGameState } from "../../../data/cloudwardens/types";
 import { Card3D } from "./Card3D";
 
-export function DuelArena() {
+interface DuelArenaProps {
+  playerState?: PlayerGameState;
+  onUpdatePlayerState?: (updater: (prev: PlayerGameState) => PlayerGameState) => void;
+}
+
+export function DuelArena({ playerState, onUpdatePlayerState }: DuelArenaProps = {}) {
   const allGuardians = CLOUDWARDENS_CARDS.filter((c) => c.type === "guardian");
   const allAnomalies = CLOUDWARDENS_CARDS.filter((c) => c.type === "anomaly");
 
@@ -36,6 +41,8 @@ export function DuelArena() {
   const [hasWon, setHasWon] = useState(false);
 
   const currentAnomaly = allAnomalies[currentAnomalyIndex] || allAnomalies[0];
+  const weaknessCard = CLOUDWARDENS_CARDS.find((c) => c.id === currentAnomaly.weakness);
+  const masteryLevel = playerState?.anomalyMastery?.[currentAnomaly.id] ?? 0;
 
   const handlePlayCard = (card: Card) => {
     if (isGameOver || attackingCardId) return;
@@ -76,10 +83,49 @@ export function DuelArena() {
       setTimeout(() => setActiveSynergyAlert(null), 3000);
     }
 
-    // 3. Cálculo de Dano Crítico e Efeitos
+    // 3. Verificação de Disrupção de Arquitetura (Anti-Padrão)
+    const activeDisruption = currentAnomaly.disruptions?.find((d) =>
+      d.triggerCardIds.includes(card.id)
+    );
+
     const isCritical = card.counters?.includes(currentAnomaly.id);
-    const baseDamage = isCritical ? card.power * 2 : card.power;
-    const totalDamage = baseDamage + synergyBonusPower;
+    let totalDamage = card.power + synergyBonusPower;
+    let logEntry = "";
+
+    if (activeDisruption) {
+      // Falha arquitetural severa: o serviço não resolve e causa dano ao SLA
+      const slaPenalty = activeDisruption.penaltySla;
+      const etherDrain = activeDisruption.penaltyEther || 0;
+      totalDamage = 1; // Ineficaz contra a anomalia
+
+      setFortressImpact(true);
+      setFloatingDamage({
+        target: "fortress",
+        text: `-${slaPenalty} HP (DISRUPÇÃO!)`,
+        isCrit: true,
+      });
+      setTimeout(() => {
+        setFortressImpact(false);
+        setFloatingDamage(null);
+      }, 1200);
+
+      setFortressHp((prev) => Math.max(0, prev - slaPenalty));
+      if (etherDrain > 0) {
+        setEtherUnits((prev) => Math.max(0, prev - etherDrain));
+      }
+
+      logEntry = activeDisruption.description;
+    } else if (isCritical) {
+      totalDamage = card.power * 2 + synergyBonusPower;
+      logEntry = `💥 MITIGAÇÃO CRÍTICA DE ARQUITETURA! ${card.name} (${card.awsService}) neutralizou a vulnerabilidade de ${currentAnomaly.name}, infligindo ${totalDamage} de mitigação!${
+        triggeredSynergy ? ` (Sinergia: +${synergyBonusPower} ATK)` : ""
+      }`;
+    } else {
+      logEntry = `⚔️ Você mobilizou ${card.name} (${card.awsService}), infligindo ${totalDamage} de dano à anomalia.${
+        triggeredSynergy ? ` (Sinergia: +${synergyBonusPower} ATK)` : ""
+      }`;
+    }
+
     const newAnomalyHp = Math.max(0, anomalyHp - totalDamage);
 
     // Efeito de impacto no inimigo
@@ -87,7 +133,7 @@ export function DuelArena() {
       setAnomalyImpact(true);
       setFloatingDamage({
         target: "anomaly",
-        text: `-${totalDamage} ${isCritical ? "CRÍTICO!" : ""}`,
+        text: `-${totalDamage} ${isCritical ? "MITIGAÇÃO CRÍTICA!" : ""}`,
         isCrit: !!isCritical,
       });
       setTimeout(() => {
@@ -95,14 +141,6 @@ export function DuelArena() {
         setFloatingDamage(null);
       }, 1200);
     }, 250);
-
-    const logEntry = isCritical
-      ? `💥 DANO CRÍTICO DE ARQUITETURA! ${card.name} (${card.awsService}) contra-atacou a fraqueza de ${currentAnomaly.name}, infligindo ${totalDamage} de dano!${
-          triggeredSynergy ? ` (Sinergia: +${synergyBonusPower} ATK)` : ""
-        }`
-      : `⚔️ Você mobilizou ${card.name} (${card.awsService}), infligindo ${totalDamage} de dano à anomalia.${
-          triggeredSynergy ? ` (Sinergia: +${synergyBonusPower} ATK)` : ""
-        }`;
 
     // Atualiza campo e mão (carta consumida, só pode ser usada UMA vez)
     const nextHand = hand.filter((c) => c.id !== card.id);
@@ -114,8 +152,21 @@ export function DuelArena() {
       setHand(nextHand);
       setPlayedField(nextPlayed);
       setAttackingCardId(null);
+
+      // Avança a maestria do incidente
+      const nextMastery = Math.min(3, masteryLevel + 1);
+      if (onUpdatePlayerState) {
+        onUpdatePlayerState((prev) => ({
+          ...prev,
+          anomalyMastery: {
+            ...prev.anomalyMastery,
+            [currentAnomaly.id]: nextMastery,
+          },
+        }));
+      }
+
       setBattleLogs((prev) => [
-        `🏆 VITÓRIA! ${currentAnomaly.name} foi totalmente neutralizada com sucesso! A fortaleza permaneceu estável.`,
+        `🏆 VITÓRIA! ${currentAnomaly.name} foi totalmente neutralizada com sucesso! Seu Grimório registrou o aprendizado (Inteligência Nível ${nextMastery}/3).`,
         logEntry,
         ...prev,
       ]);
@@ -321,8 +372,8 @@ export function DuelArena() {
                 </p>
               </div>
 
-              {/* Barra de Vida da Anomalia */}
-              <div className="w-full sm:w-48 text-center sm:text-right font-mono text-xs">
+              {/* Barra de Vida da Anomalia e Inteligência do Incidente */}
+              <div className="w-full sm:w-60 text-center sm:text-right font-mono text-xs">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-steel">Integridade:</span>
                   <span className="text-red-400 font-bold text-sm">
@@ -335,8 +386,48 @@ export function DuelArena() {
                     style={{ width: `${(anomalyHp / 20) * 100}%` }}
                   />
                 </div>
+
+                {/* Caixa de Inteligência do Incidente */}
+                <div className="mt-3 rounded border border-forge-800 bg-black/60 p-2.5 text-[11px] font-sans text-left space-y-1">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-steel uppercase font-bold">
+                    <span>📖 Inteligência do Incidente:</span>
+                    <span className="text-amber-400">Nível {masteryLevel} / 3</span>
+                  </div>
+
+                  {masteryLevel === 0 && (
+                    <p className="text-slate-400 italic text-[10px]">
+                      🔒 Fraquezas e riscos ocultos. Lute contra esta anomalia para mapear sintomas e vulnerabilidades no seu Grimório.
+                    </p>
+                  )}
+
+                  {masteryLevel >= 1 && currentAnomaly.intelligence && (
+                    <p className="text-sky-300 text-[10px]">
+                      <strong>📋 Sintoma:</strong> {currentAnomaly.intelligence.symptom}
+                    </p>
+                  )}
+
+                  {masteryLevel >= 2 && currentAnomaly.intelligence && (
+                    <p className="text-red-300 text-[10px]">
+                      <strong>⚠️ Anti-Padrões:</strong> {currentAnomaly.intelligence.antiPatterns}
+                    </p>
+                  )}
+
+                  {masteryLevel >= 3 && currentAnomaly.intelligence && (
+                    <p className="text-emerald-300 text-[10px]">
+                      <strong>✨ Arquitetura Recomendada:</strong> {currentAnomaly.intelligence.idealArchitecture}
+                    </p>
+                  )}
+                </div>
+
                 <span className="mt-2 block text-[10px] text-steel">
-                  Fraqueza: <strong className="text-amber-400">{currentAnomaly.weakness}</strong>
+                  Fraqueza:{" "}
+                  {masteryLevel >= 3 ? (
+                    <strong className="text-emerald-400">
+                      {weaknessCard?.name || currentAnomaly.weakness} ({weaknessCard?.awsService})
+                    </strong>
+                  ) : (
+                    <span className="text-slate-500 italic">🔒 Oculta (Alcance Nível 3 de Maestria)</span>
+                  )}
                 </span>
               </div>
             </div>

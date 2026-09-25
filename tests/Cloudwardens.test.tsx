@@ -131,7 +131,7 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     fireEvent.click(tutorialBtn);
 
     // Modal is open
-    expect(screen.getByText(/PASSO 1 DE 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/PASSO 1 DE 5/i)).toBeInTheDocument();
 
     // Advance step 1 -> step 2
     fireEvent.click(screen.getByRole("button", { name: /Aceitar a Convocação/i }));
@@ -224,6 +224,55 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     expect(screen.getByText(/Excelente! Resposta Correta/i)).toBeInTheDocument();
     const claimBtn = screen.getByRole("button", { name: /Reivindicar Recompensa de Conclusão/i });
     expect(claimBtn).not.toBeDisabled();
+  });
+
+  it("guides player through the architectural battle step in tutorial, triggering disruption on anti-pattern and victory on counter-service", () => {
+    localStorage.clear();
+
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    // Open tutorial
+    const tutorialBtn = screen.getByTitle(/Abrir Tutorial do Aprendiz/i);
+    fireEvent.click(tutorialBtn);
+
+    // Advance step 1 -> step 2 -> step 3
+    fireEvent.click(screen.getByRole("button", { name: /Aceitar a Convocação/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Receber Cartas e Prosseguir/i }));
+
+    // Answer question correctly in step 3
+    const correctOptionBtn = screen.getByRole("button", { name: /Multi-AZ/i });
+    fireEvent.click(correctOptionBtn);
+    fireEvent.click(screen.getByRole("button", { name: /Reivindicar Recompensa de Conclusão e Batalha Guiada/i }));
+
+    // Now in Step 4: Guided Architecture Battle
+    expect(screen.getByText(/O Incidente do Gargalo Fatal/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/SLA da Fortaleza/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/Orçamento de Éter/i)).toBeInTheDocument();
+
+    // Try playing S3 or IAM card (anti-pattern for physical data center loss)
+    const iamBtn = screen.getByRole("button", { name: /O Selo das Chaves Reais/i });
+    fireEvent.click(iamBtn);
+
+    // Disruption warning is displayed!
+    expect(screen.getByText(/Disrupção de Arquitetura/i)).toBeInTheDocument();
+    expect(screen.getByText(/O AWS IAM cuida de autenticação e menor privilégio/i)).toBeInTheDocument();
+
+    // Now play the proper architectural counter: Amazon EC2 Multi-AZ
+    const ec2Btn = screen.getByRole("button", { name: /O Sentinela de Aço/i });
+    fireEvent.click(ec2Btn);
+
+    // Incident is mitigated!
+    expect(screen.getByText(/Incidente Mitigado com Perfeição/i)).toBeInTheDocument();
+    expect(screen.getByText(/MITIGAÇÃO CRÍTICA DE ARQUITETURA/i)).toBeInTheDocument();
+
+    // Advance to Step 5: Reward and graduation
+    fireEvent.click(screen.getByRole("button", { name: /Reivindicar Recompensa e Concluir Formação/i }));
+    expect(screen.getByText(/Você é Oficialmente um Cloudwarden/i)).toBeInTheDocument();
+    expect(screen.getByText(/\+150 Unidades de Éter/i)).toBeInTheDocument();
   });
 });
 

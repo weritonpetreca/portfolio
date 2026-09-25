@@ -106,7 +106,12 @@ export function WitcherRealmPage() {
             onUpdatePlayerState={handleUpdatePlayerState}
           />
         )}
-        {activeTab === "arena" && <DuelArena />}
+        {activeTab === "arena" && (
+          <DuelArena
+            playerState={playerState}
+            onUpdatePlayerState={handleUpdatePlayerState}
+          />
+        )}
         {activeTab === "boosters" && (
           <BoosterOpeningModal
             playerState={playerState}

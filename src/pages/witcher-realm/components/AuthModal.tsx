@@ -19,8 +19,6 @@ export function AuthModal({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [faction, setFaction] = useState<"amber" | "silicon" | "vortex">("amber");
-  const [cloudFocus, setCloudFocus] = useState<"aws" | "azure" | "gcp" | "multicloud">("aws");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -37,21 +35,12 @@ export function AuthModal({
         if (!email.trim() || !email.includes("@")) throw new Error("Informe um e-mail válido.");
         if (password.length < 4) throw new Error("A senha deve ter no mínimo 4 caracteres.");
 
-        const guardianTitle =
-          cloudFocus === "aws"
-            ? "Iniciado da AWS"
-            : cloudFocus === "azure"
-            ? "Sentinela de Azure"
-            : cloudFocus === "gcp"
-            ? "Navegador de GCP"
-            : "Mestre Multi-Cloud";
-
         const newUser = registerAccount({
           name: name.trim(),
           email: email.trim().toLowerCase(),
-          faction,
-          cloudFocus,
-          guardianTitle,
+          faction: "amber",
+          cloudFocus: "aws",
+          guardianTitle: "Iniciado da Nuvem",
         });
 
         setSuccessMsg(`Bem-vindo à guilda, ${newUser.name}! Registro forjado.`);
@@ -203,53 +192,10 @@ export function AuthModal({
           </div>
 
           {mode === "register" && (
-            <>
-              {/* Foco de Nuvem */}
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-steel mb-1 font-bold">
-                  Trilha & Foco Primário
-                </label>
-                <select
-                  value={cloudFocus}
-                  onChange={(e) => setCloudFocus(e.target.value as "aws" | "azure" | "gcp" | "multicloud")}
-                  className="w-full rounded-lg border border-forge-700 bg-forge-950 px-3 py-2 text-bone focus:border-amber-400 focus:outline-none"
-                >
-                  <option value="aws">AWS Cloud Practitioner & Architect (Recomendado)</option>
-                  <option value="azure">Microsoft Azure Fundamentals (AZ-900)</option>
-                  <option value="gcp">Google Cloud Digital Leader</option>
-                  <option value="multicloud">Estratégia Multi-Cloud Híbrida</option>
-                </select>
-              </div>
-
-              {/* Escolha da Facção */}
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-steel mb-1 font-bold">
-                  Escolha sua Facção na Ordem
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "amber", name: "Ordem de Âmbar", icon: "🛡️", desc: "Alta Resiliência" },
-                    { id: "silicon", name: "Silício", icon: "⚡", desc: "Alta Performance" },
-                    { id: "vortex", name: "Vórtice", icon: "🔮", desc: "Serverless" },
-                  ].map((f) => (
-                    <button
-                      type="button"
-                      key={f.id}
-                      onClick={() => setFaction(f.id as "amber" | "silicon" | "vortex")}
-                      className={`p-2 rounded-lg border text-center transition-all cursor-pointer ${
-                        faction === f.id
-                          ? "border-amber-400 bg-amber-950/60 text-amber-300 font-bold"
-                          : "border-forge-800 bg-forge-950/60 text-steel hover:border-forge-700"
-                      }`}
-                    >
-                      <span className="text-lg block mb-0.5">{f.icon}</span>
-                      <span className="text-[11px] block">{f.name}</span>
-                      <span className="text-[9px] text-steel block">{f.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
+            <div className="rounded-lg border border-amber-600/30 bg-amber-950/30 p-3 text-[11px] text-amber-300/80 leading-relaxed font-sans">
+              <span className="font-bold text-amber-300 block mb-0.5">ℹ️ Jornada do Iniciado:</span>
+              Você iniciará com as cartas fundamentais da AWS. A filiação formal a uma das Facções (Ordem de Âmbar, Silício ou Vórtice) será desbloqueada após suas primeiras vitórias na Arena.
+            </div>
           )}
 
           <div className="pt-2">

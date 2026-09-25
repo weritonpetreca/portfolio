@@ -246,6 +246,19 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     weakness: "guardian-ec2",
     artPrompt:
       "A crumbling medieval stone bridge spanning a terrifying chasm with a single cracked keystone trembling under immense weight, ominous ravens circling, dark stormy sky, impending structural collapse, gothic dark fantasy landscape",
+    intelligence: {
+      symptom: "Queda física súbita de infraestrutura. Aplicação inteira fora do ar devido a dependência de um único ponto geográfico de falha.",
+      antiPatterns: "Mobilizar apenas armazenamento passivo (S3) ou permissões (IAM) sem capacidade de computação ativa mantém o data center inoperante e agrava o downtime (-5% SLA extra).",
+      idealArchitecture: "Implementar redundância Multi-AZ com Amazon EC2 distribuído ou Auto Scaling para absorver a perda do data center.",
+    },
+    disruptions: [
+      {
+        triggerCardIds: ["guardian-s3", "guardian-iam"],
+        penaltySla: 5,
+        penaltyEther: 1,
+        description: "⚠️ DISRUPÇÃO ARQUITETURAL: O armazenamento ou identidade estão isolados sem capacidade de processamento ativa! O data center continua inoperante e o SLA despencou!",
+      },
+    ],
   },
   {
     id: "anomaly-root-breach",
@@ -269,6 +282,19 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     weakness: "guardian-iam",
     artPrompt:
       "A shadowy ghostly thief hand picking a royal throne room vault lock with a glowing skeleton key, venomous purple mist creeping on marble floors, crimson moonlight through high arched windows, dark fantasy suspense",
+    intelligence: {
+      symptom: "Credenciais de privilégio supremo sem MFA ativas em repositório público. Risco de sequestro total da conta e deleção de todos os recursos.",
+      antiPatterns: "Lançar computação (EC2) ou portais (CloudFront) sem revogar credenciais concede ao invasor infraestrutura para minerar cripto e vazar dados sensíveis (-8% SLA extra)!",
+      idealArchitecture: "Aplicação imediata do Princípio do Menor Privilégio via AWS IAM, revogação de Access Keys do root e imposição de MFA.",
+    },
+    disruptions: [
+      {
+        triggerCardIds: ["guardian-ec2", "guardian-cloudfront"],
+        penaltySla: 8,
+        penaltyEther: 1,
+        description: "⚠️ DISRUPÇÃO ARQUITETURAL: Acesso root não revogado! O atacante sequestrou a nova infraestrutura para exfiltração maciça de dados!",
+      },
+    ],
   },
   {
     id: "anomaly-traffic-spike",
@@ -292,6 +318,19 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     weakness: "guardian-cloudfront",
     artPrompt:
       "A colossal tidal wave made of shadowy swarming wraiths crashing violently against a coastal cliffside fortress, foaming sea, apocalyptic stormy sky, dark fantasy epic warfare",
+    intelligence: {
+      symptom: "Inundação volumétrica de requisições maliciosas de camada 7 e esgotamento imediato da CPU dos servidores centrais.",
+      antiPatterns: "Colocar servidores EC2 ou DynamoDB diretamente na linha de fogo sem Edge Caching ou DLQ atrai o tráfego e trava o banco de dados (-6% SLA extra, -2 Éter)!",
+      idealArchitecture: "Absorção de tráfego na borda geográfica com Amazon CloudFront e buffering assíncrono com Amazon SQS.",
+    },
+    disruptions: [
+      {
+        triggerCardIds: ["guardian-ec2", "guardian-dynamodb"],
+        penaltySla: 6,
+        penaltyEther: 2,
+        description: "⚠️ DISRUPÇÃO ARQUITETURAL: Servidores centrais expostos diretamente à inundação! A CPU travou em 100% e o orçamento de Éter foi drenado!",
+      },
+    ],
   },
   {
     id: "anomaly-bill-spike",
@@ -315,6 +354,19 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     weakness: "guardian-ec2",
     artPrompt:
       "A demonic goblin-like treasure leech siphoning gold coins from an ornate chest with an insatiable mouth, scattered rubies, dark damp dungeon vault, glowing avaricious yellow eyes, dark fantasy creature art",
+    intelligence: {
+      symptom: "Fatura em escalada exponencial devido a recursos provisionados continuamente sem desligamento de ociosidade.",
+      antiPatterns: "Adicionar instâncias EC2 On-Demand superdimensionadas agrava o sangramento do orçamento (-3 Éter extra drenado)!",
+      idealArchitecture: "Migrar para computação serverless orientada a eventos (AWS Lambda) e aplicar políticas de ciclo de vida.",
+    },
+    disruptions: [
+      {
+        triggerCardIds: ["guardian-ec2"],
+        penaltySla: 4,
+        penaltyEther: 3,
+        description: "⚠️ DISRUPÇÃO ARQUITETURAL: Provisionar servidores pesados ociosos aumentou o desperdício! O Éter do reino vazou sem gerar valor!",
+      },
+    ],
   },
   {
     id: "anomaly-dead-letters",
@@ -338,6 +390,19 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     weakness: "guardian-dynamodb",
     artPrompt:
       "A forgotten dungeon catacomb filled with piles of glowing wax-sealed parchment letters tangled in spectral cobwebs, ghostly lanterns, somber melancholy atmosphere, dark fantasy illustration",
+    intelligence: {
+      symptom: "Consumidores falham continuamente em loop de retry, travando toda a esteira de pedidos e corrompendo a latência.",
+      antiPatterns: "Chamar funções Lambda síncronas diretamente sobre mensagens corrompidas esgota limites de concorrência (-5% SLA extra)!",
+      idealArchitecture: "Isolar as falhas configurando Dead-Letter Queue (DLQ) com Amazon SQS e auditoria em Amazon DynamoDB.",
+    },
+    disruptions: [
+      {
+        triggerCardIds: ["guardian-lambda", "guardian-ec2"],
+        penaltySla: 5,
+        penaltyEther: 1,
+        description: "⚠️ DISRUPÇÃO ARQUITETURAL: Retentativas síncronas sem DLQ esgotaram o pool de concorrência dos trabalhadores!",
+      },
+    ],
   },
   {
     id: "anomaly-data-loss",
@@ -361,5 +426,19 @@ export const CLOUDWARDENS_CARDS: Card[] = [
     weakness: "guardian-s3",
     artPrompt:
       "A terrifying cosmic abyss tearing open inside an ancient library, sucking crumbling scrolls and books into an endless void of black holes and violet cosmic dust, apocalyptic dark fantasy",
+    intelligence: {
+      symptom: "Corrupção de volume primário sem cópias pontuais ou redundância entre regiões, gerando perda irreversível.",
+      antiPatterns: "Depender de computação efêmera e caches voláteis sem armazenamento durável causa destruição instantânea do histórico (-7% SLA extra)!",
+      idealArchitecture: "Armazenamento durável em Amazon S3 com Versionamento ativado, Bloqueio de Objetos (WORM) e Replicação Multi-Região.",
+    },
+    disruptions: [
+      {
+        triggerCardIds: ["guardian-ec2", "guardian-lambda"],
+        penaltySla: 7,
+        penaltyEther: 1,
+        description: "⚠️ DISRUPÇÃO ARQUITETURAL: Computação volátil sem persistência durável! Os dados foram destruídos quando as instâncias desligaram!",
+      },
+    ],
   },
+
 ];

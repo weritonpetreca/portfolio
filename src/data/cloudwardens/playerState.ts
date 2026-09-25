@@ -53,6 +53,7 @@ export const DEFAULT_PLAYER_STATE: PlayerGameState = {
     canClaimToday: true,
   },
   isTutorialCompleted: false,
+  anomalyMastery: {},
 };
 
 export function getRegisteredAccounts(): CloudwardenUser[] {
@@ -102,6 +103,7 @@ export function loadPlayerState(): PlayerGameState {
       user: parsed.user ?? null,
       unlockedCardIds: parsed.unlockedCardIds || DEFAULT_PLAYER_STATE.unlockedCardIds,
       savedDecks: parsed.savedDecks || DEFAULT_PLAYER_STATE.savedDecks,
+      anomalyMastery: parsed.anomalyMastery || {},
     };
   } catch {
     return DEFAULT_PLAYER_STATE;

@@ -19,6 +19,19 @@ export type CardFunctionalTag =
   | "messaging"
   | "finops";
 
+export interface AnomalyDisruption {
+  triggerCardIds: string[];
+  penaltySla: number;
+  penaltyEther?: number;
+  description: string;
+}
+
+export interface AnomalyIntelligence {
+  symptom: string; // Nível 1: Sintoma técnico revelado
+  antiPatterns: string; // Nível 2: Anti-padrões e disrupções reveladas
+  idealArchitecture: string; // Nível 3: Arquitetura e sinergia de ouro
+}
+
 export interface Card {
   id: string;
   name: string; // Nome autoral da fantasia medieval
@@ -40,6 +53,8 @@ export interface Card {
   synergyTags?: CardFunctionalTag[]; // Tags de sinergia
   artPrompt?: string; // Prompt refinado em inglês para geração de arte em IA
   imageUrl?: string; // URL da ilustração oficial
+  disruptions?: AnomalyDisruption[]; // Para anomalias: regras de disrupção caso usadas cartas inadequadas
+  intelligence?: AnomalyIntelligence; // Para anomalias: dados revelados por nível de maestria
 }
 
 export interface CardSynergy {
@@ -94,6 +109,7 @@ export interface PlayerGameState {
   etherCurrency: number;
   dailyStreak: DailyStreakState;
   isTutorialCompleted: boolean;
+  anomalyMastery: Record<string, number>; // ID da anomalia -> Nível de Maestria (0 a 3)
 }
 
 export interface WeeklyEventChallenge {
