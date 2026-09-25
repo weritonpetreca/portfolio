@@ -53,22 +53,24 @@ export function Footer() {
         </div>
 
         {/* Banner de Destaque Oficial: Cloudwardens */}
-        <div className="relative overflow-hidden rounded-xl border border-amber-500/40 bg-gradient-to-r from-forge-900 via-forge-950 to-amber-950/40 p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.8),0_0_20px_rgba(245,158,11,0.15)] font-mono">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+        <div className="group relative overflow-hidden rounded-xl border border-amber-500/40 bg-gradient-to-r from-forge-900 via-forge-950 to-amber-950/40 p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.8),0_0_20px_rgba(245,158,11,0.15)] font-mono backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-400/80 hover:shadow-[0_20px_45px_rgba(0,0,0,0.9),0_0_30px_rgba(245,158,11,0.35)]">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl transition-all duration-500 group-hover:scale-150 group-hover:bg-amber-500/20" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div className="flex items-start sm:items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-amber-500/60 bg-amber-950/70 text-3xl shadow-[0_0_20px_rgba(245,158,11,0.35)]">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-amber-500/60 bg-amber-950/70 text-3xl shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:border-amber-400 group-hover:shadow-[0_0_25px_rgba(245,158,11,0.6)]">
                 ☁️
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs uppercase tracking-widest text-amber-400 font-bold">
+                  <span className="text-xs uppercase tracking-widest text-amber-400 font-bold transition-colors group-hover:text-amber-300">
                     PROJETO AUTORAL EM DESTAQUE
                   </span>
-                  <span className="rounded border border-amber-600/40 bg-amber-950/80 px-1.5 py-0.2 text-[10px] text-amber-300 font-semibold">
+                  <span className="rounded border border-amber-600/40 bg-amber-950/80 px-1.5 py-0.2 text-[10px] text-amber-300 font-semibold transition-colors group-hover:border-amber-500/80">
                     TCG DE ARQUITETURA + SIMULADOR CLOUD
                   </span>
                 </div>
-                <h4 className="mt-1 font-display text-lg sm:text-xl font-bold text-bone">
+                <h4 className="mt-1 font-display text-lg sm:text-xl font-bold text-bone transition-colors group-hover:text-amber-200">
                   Cloudwardens: O Domínio de Âmbar
                 </h4>
                 <p className="mt-1 font-sans text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
@@ -79,10 +81,10 @@ export function Footer() {
 
             <Link
               to="/witcher-realm"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-amber-500/80 bg-gradient-to-r from-amber-600 to-amber-500 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black shadow-lg transition-all duration-200 hover:from-amber-500 hover:to-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] cursor-pointer"
+              className="group/btn inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-amber-500/80 bg-gradient-to-r from-amber-600 to-amber-500 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black shadow-lg transition-all duration-300 hover:from-amber-500 hover:to-amber-400 hover:shadow-[0_0_25px_rgba(245,158,11,0.6)] hover:scale-105 active:scale-95 cursor-pointer"
             >
               <span>Acessar Cloudwardens</span>
-              <span>➔</span>
+              <span className="transition-transform duration-200 group-hover/btn:translate-x-1 group-hover:translate-x-1">➔</span>
             </Link>
           </div>
         </div>
