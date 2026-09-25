@@ -127,11 +127,11 @@ export function TutorialModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="relative w-full max-w-3xl rounded-2xl border-2 border-amber-500/70 bg-gradient-to-b from-forge-900 via-forge-950 to-black p-6 sm:p-8 text-bone shadow-[0_0_50px_rgba(245,158,11,0.25)] font-mono">
-        
-        {/* Barra Superior do Tutorial */}
-        <div className="flex items-center justify-between border-b border-forge-700/80 pb-3 mb-6">
+    <div className="w-full max-w-4xl mx-auto rounded-2xl border-2 border-amber-500/70 bg-gradient-to-b from-forge-900 via-forge-950 to-black p-6 sm:p-8 text-bone shadow-[0_0_50px_rgba(245,158,11,0.25)] font-mono animate-fadeIn">
+      
+      {/* Barra Superior do Tutorial */}
+      <div className="border-b border-forge-700/80 pb-4 mb-6 space-y-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl">📜</span>
             <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
@@ -142,11 +142,21 @@ export function TutorialModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-steel hover:text-bone text-xs underline cursor-pointer"
+            className="text-steel hover:text-amber-400 text-xs underline cursor-pointer flex items-center gap-1"
           >
-            Pular Tutorial ✕
+            <span>←</span>
+            <span>Voltar ao Início</span>
           </button>
         </div>
+
+        {/* Barra de Progresso Visual dos 5 Passos */}
+        <div className="w-full h-1.5 rounded-full bg-forge-900 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all duration-300"
+            style={{ width: `${(currentStep / 5) * 100}%` }}
+          />
+        </div>
+      </div>
 
         {/* PASSO 1: A CONVOCAÇÃO DOS GUARDIÕES */}
         {currentStep === 1 && (
@@ -576,6 +586,5 @@ export function TutorialModal({
         )}
 
       </div>
-    </div>
   );
 }

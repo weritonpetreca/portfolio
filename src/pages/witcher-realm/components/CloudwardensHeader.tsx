@@ -1,7 +1,17 @@
 import { Link } from "react-router";
 import type { CloudwardenUser } from "../../../data/cloudwardens/types";
 
-export type CloudwardensTab = "intro" | "career" | "deckbuilder" | "deck" | "arena" | "boosters" | "oracle";
+export type CloudwardensTab =
+  | "intro"
+  | "career"
+  | "deckbuilder"
+  | "deck"
+  | "arena"
+  | "boosters"
+  | "oracle"
+  | "shop"
+  | "profile"
+  | "tutorial";
 
 interface CloudwardensHeaderProps {
   activeTab: CloudwardensTab;
@@ -60,7 +70,7 @@ export function CloudwardensHeader({
         </div>
 
         {/* Abas Principais Despoluídas */}
-        <nav className="flex items-center gap-1 sm:gap-2 font-mono text-xs font-bold">
+        <nav className="flex items-center gap-1 sm:gap-1.5 font-mono text-xs font-bold">
           
           {/* Aba 1: Introdução & Proposta */}
           <button
@@ -74,6 +84,21 @@ export function CloudwardensHeader({
           >
             <span>📖</span> <span className="hidden sm:inline">Início</span>
           </button>
+
+          {/* Aba Perfil (quando autenticado) */}
+          {user && (
+            <button
+              type="button"
+              onClick={() => onTabChange("profile")}
+              className={`cursor-pointer rounded-md px-2.5 py-1.5 transition-all ${
+                activeTab === "profile"
+                  ? "border border-amber-500/80 bg-amber-500/20 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)] font-bold"
+                  : "border border-transparent text-steel hover:text-bone hover:border-forge-700"
+              }`}
+            >
+              <span>🛡️</span> <span className="hidden sm:inline">Perfil</span>
+            </button>
+          )}
 
           {/* Aba 2: Modo Carreira */}
           <button
@@ -126,6 +151,19 @@ export function CloudwardensHeader({
           >
             <span>📜</span> <span className="hidden md:inline">Simulados</span>
           </button>
+
+          {/* Aba 6: Mercado de Éter */}
+          <button
+            type="button"
+            onClick={() => onTabChange("shop")}
+            className={`cursor-pointer rounded-md px-2.5 py-1.5 transition-all ${
+              activeTab === "shop"
+                ? "border border-amber-500/80 bg-amber-500/20 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)] font-bold"
+                : "border border-transparent text-steel hover:text-bone hover:border-forge-700"
+            }`}
+          >
+            <span>🛒</span> <span className="hidden md:inline">Mercado</span>
+          </button>
         </nav>
 
         {/* Recursos do Jogador (Boosters, Saldo de Éter & Guia) */}
@@ -151,10 +189,16 @@ export function CloudwardensHeader({
             )}
           </button>
 
-          {/* Saldo de Éter */}
-          <span className="hidden md:inline-flex rounded border border-amber-600/40 bg-amber-950/40 px-2 py-1 text-amber-300 font-bold text-[11px]">
-            ⚡ {etherBalance} Éter
-          </span>
+          {/* Saldo de Éter (Clicável -> abre o Mercado) */}
+          <button
+            type="button"
+            onClick={() => onTabChange("shop")}
+            title="Ver saldo e comprar itens no Mercado de Éter"
+            className="hidden md:inline-flex items-center gap-1 rounded border border-amber-600/40 bg-amber-950/40 px-2 py-1 text-amber-300 font-bold text-[11px] hover:border-amber-500 hover:bg-amber-900/50 transition-colors cursor-pointer"
+          >
+            <span>⚡</span>
+            <span>{etherBalance} Éter</span>
+          </button>
 
           {/* Botão de Tutorial */}
           <button
@@ -168,19 +212,27 @@ export function CloudwardensHeader({
 
           {/* Perfil do Guardião / Botão de Autenticação */}
           {user ? (
-            <div className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-amber-600/50 bg-amber-950/50 px-2 sm:px-2.5 py-1 text-xs text-amber-200">
-              <span className="text-sm">
-                {user.faction === "amber" ? "🛡️" : user.faction === "silicon" ? "⚡" : "🌀"}
-              </span>
-              <div className="hidden lg:block text-left leading-tight">
-                <span className="block font-bold text-bone max-w-[90px] truncate">{user.name}</span>
-                <span className="block text-[9px] text-amber-400/80">{user.guardianTitle}</span>
-              </div>
+            <div className="flex items-center gap-1.5 rounded-lg border border-amber-600/50 bg-amber-950/50 px-2 py-1 text-xs text-amber-200">
+              <button
+                type="button"
+                onClick={() => onTabChange("profile")}
+                title="Acessar Perfil do Guardião"
+                className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+              >
+                <span className="text-sm">
+                  {user.faction === "amber" ? "🛡️" : user.faction === "silicon" ? "⚡" : "🌀"}
+                </span>
+                <div className="hidden lg:block text-left leading-tight">
+                  <span className="block font-bold text-bone max-w-[90px] truncate">{user.name}</span>
+                  <span className="block text-[9px] text-amber-400/80">{user.guardianTitle}</span>
+                </div>
+              </button>
+
               <button
                 type="button"
                 onClick={onLogout}
                 title="Desconectar Guardião"
-                className="cursor-pointer text-steel hover:text-red-400 px-1 text-[11px] font-bold transition-colors"
+                className="cursor-pointer text-steel hover:text-red-400 pl-1 text-[11px] font-bold transition-colors ml-1 border-l border-forge-700/60"
               >
                 ✕
               </button>
@@ -196,7 +248,6 @@ export function CloudwardensHeader({
             </button>
           )}
         </div>
-
       </div>
     </header>
   );

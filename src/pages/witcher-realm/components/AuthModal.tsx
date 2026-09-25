@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import type { CloudwardenUser } from "../../../data/cloudwardens/types";
 import { registerAccount, authenticateAccount } from "../../../data/cloudwardens/playerState";
 
@@ -21,6 +21,18 @@ export function AuthModal({
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Limpa os campos e mensagens ao abrir o modal ou mudar de usuário
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setName("");
+      setEmail("");
+      setPassword("");
+      setErrorMsg(null);
+      setSuccessMsg(null);
+    }
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 
@@ -45,12 +57,18 @@ export function AuthModal({
 
         setSuccessMsg(`Bem-vindo à guilda, ${newUser.name}! Registro forjado.`);
         onSuccess(newUser);
+        setName("");
+        setEmail("");
+        setPassword("");
         onClose();
       } else {
         if (!email.trim()) throw new Error("Informe o e-mail de acesso.");
         const user = authenticateAccount(email.trim().toLowerCase());
         setSuccessMsg(`Autenticação confirmada! Bem-vindo de volta, ${user.name}.`);
         onSuccess(user);
+        setName("");
+        setEmail("");
+        setPassword("");
         onClose();
       }
     } catch (err: unknown) {
@@ -60,6 +78,25 @@ export function AuthModal({
         setErrorMsg("Ocorreu uma anomalia na autenticação. Tente novamente.");
       }
     }
+  };
+
+  const handleFederatedLogin = (provider: "Google" | "GitHub") => {
+    const federatedUser: CloudwardenUser = {
+      id: `${provider.toLowerCase()}-${Date.now()}`,
+      name: provider === "Google" ? "Guardião Google" : "Dev Cloudwarden",
+      email: `guardiao.${provider.toLowerCase()}@cloudwardens.io`,
+      faction: "amber",
+      cloudFocus: "aws",
+      guardianTitle: "Iniciado da Nuvem",
+      createdAt: new Date().toISOString(),
+    };
+    onSuccess(federatedUser);
+    setName("");
+    setEmail("");
+    setPassword("");
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    onClose();
   };
 
   const handleGuestLogin = () => {
@@ -73,6 +110,11 @@ export function AuthModal({
       createdAt: new Date().toISOString(),
     };
     onSuccess(guestUser);
+    setName("");
+    setEmail("");
+    setPassword("");
+    setErrorMsg(null);
+    setSuccessMsg(null);
     onClose();
   };
 
@@ -108,6 +150,10 @@ export function AuthModal({
             onClick={() => {
               setMode("register");
               setErrorMsg(null);
+              setSuccessMsg(null);
+              setName("");
+              setEmail("");
+              setPassword("");
             }}
             className={`flex-1 py-2 text-center rounded transition-all cursor-pointer ${
               mode === "register"
@@ -122,6 +168,9 @@ export function AuthModal({
             onClick={() => {
               setMode("login");
               setErrorMsg(null);
+              setSuccessMsg(null);
+              setEmail("");
+              setPassword("");
             }}
             className={`flex-1 py-2 text-center rounded transition-all cursor-pointer ${
               mode === "login"
@@ -191,13 +240,6 @@ export function AuthModal({
             />
           </div>
 
-          {mode === "register" && (
-            <div className="rounded-lg border border-amber-600/30 bg-amber-950/30 p-3 text-[11px] text-amber-300/80 leading-relaxed font-sans">
-              <span className="font-bold text-amber-300 block mb-0.5">ℹ️ Jornada do Iniciado:</span>
-              Você iniciará com as cartas fundamentais da AWS. A filiação formal a uma das Facções (Ordem de Âmbar, Silício ou Vórtice) será desbloqueada após suas primeiras vitórias na Arena.
-            </div>
-          )}
-
           <div className="pt-2">
             <button
               type="submit"
@@ -207,6 +249,55 @@ export function AuthModal({
             </button>
           </div>
         </form>
+
+        {/* Divisor de Login Federado */}
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-forge-800" />
+          <span className="text-[10px] uppercase tracking-wider text-steel font-bold">
+            ou conecte-se com
+          </span>
+          <div className="h-px flex-1 bg-forge-800" />
+        </div>
+
+        {/* Botões de Login Federado (Google & GitHub) */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => handleFederatedLogin("Google")}
+            className="flex items-center justify-center gap-2 rounded-lg border border-forge-700 bg-forge-950/80 hover:bg-forge-900 py-2.5 px-3 text-xs text-bone transition-colors cursor-pointer"
+          >
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <path
+                fill="#EA4335"
+                d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.8 5 12 5z"
+              />
+              <path
+                fill="#4285F4"
+                d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.1-2 .4-2.7L1.6 6.4C.6 8.3 0 10.1 0 12s.6 3.7 1.6 5.6l3.7-2.9z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.2 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"
+              />
+            </svg>
+            <span>Google</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleFederatedLogin("GitHub")}
+            className="flex items-center justify-center gap-2 rounded-lg border border-forge-700 bg-forge-950/80 hover:bg-forge-900 py-2.5 px-3 text-xs text-bone transition-colors cursor-pointer"
+          >
+            <svg className="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
+              <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+            </svg>
+            <span>GitHub</span>
+          </button>
+        </div>
 
         {/* Rodapé do Modal com Convidado */}
         <div className="mt-5 pt-4 border-t border-forge-800 flex items-center justify-between text-[11px] text-steel">

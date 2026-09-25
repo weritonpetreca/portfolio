@@ -127,8 +127,9 @@ export function BoosterOpeningModal({
         {/* Trilha visual dos 7 dias */}
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5 pt-4 border-t border-forge-800">
           {[1, 2, 3, 4, 5, 6, 7].map((day) => {
-            const isCompleted = day <= streak.currentStreakDays && !streak.canClaimToday;
-            const isToday = day === streak.currentStreakDays && streak.canClaimToday;
+            const targetDay = (streak.currentStreakDays % 7) + 1;
+            const isCompleted = day <= streak.currentStreakDays;
+            const isToday = day === targetDay && streak.canClaimToday;
 
             return (
               <div

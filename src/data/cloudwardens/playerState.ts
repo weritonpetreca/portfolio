@@ -48,7 +48,7 @@ export const DEFAULT_PLAYER_STATE: PlayerGameState = {
   unopenedPacks: INITIAL_BOOTER_PACKS,
   etherCurrency: 150,
   dailyStreak: {
-    currentStreakDays: 1,
+    currentStreakDays: 0,
     lastClaimedDate: null,
     canClaimToday: true,
   },

@@ -274,5 +274,91 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     expect(screen.getByText(/Você é Oficialmente um Cloudwarden/i)).toBeInTheDocument();
     expect(screen.getByText(/\+150 Unidades de Éter/i)).toBeInTheDocument();
   });
+
+  it("switches to Mercado tab, displays items and allows purchasing booster with Éter", () => {
+    localStorage.setItem(
+      "cloudwardens_player_save_v1",
+      JSON.stringify({ etherCurrency: 300, unopenedPacks: [] })
+    );
+
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    // Click Mercado in nav
+    fireEvent.click(screen.getByRole("button", { name: /Mercado/i }));
+
+    expect(screen.getByText(/O Mercado de Éter/i)).toBeInTheDocument();
+    expect(screen.getByText(/Booster de Recrutamento/i)).toBeInTheDocument();
+
+    // Buy standard booster for 100 ether
+    const buyBtn = screen.getByRole("button", { name: /Adquirir por 100 Éter/i });
+    fireEvent.click(buyBtn);
+
+    // Success notification and pack acquired
+    expect(screen.getByText(/adquirido com sucesso/i)).toBeInTheDocument();
+  });
+
+  it("switches to Perfil tab when logged in, displays clean streak number and handles logout", () => {
+    localStorage.setItem(
+      "cloudwardens_player_save_v1",
+      JSON.stringify({
+        user: {
+          id: "u-1",
+          name: "Arquiteto Master",
+          email: "arquiteto@cloudwardens.io",
+          faction: "amber",
+          guardianTitle: "Iniciado da Nuvem",
+          cloudFocus: "aws",
+          createdAt: "2026-09-01T00:00:00Z",
+        },
+        dailyStreak: { currentStreakDays: 1, lastClaimedDate: null, canClaimToday: false },
+        etherCurrency: 500,
+      })
+    );
+
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    // Click user pill or Perfil button in nav
+    const profileBtn = screen.getByRole("button", { name: /Perfil/i });
+    fireEvent.click(profileBtn);
+
+    expect(screen.getAllByText(/Arquiteto Master/i).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/Ordem de Âmbar/i)).toBeInTheDocument();
+    expect(screen.getByText(/Maestria de Incidentes & Telemetria/i)).toBeInTheDocument();
+
+    // Logout from profile
+    const logoutBtn = screen.getByRole("button", { name: /Sair ➔/i });
+    fireEvent.click(logoutBtn);
+
+    // Returns to intro and user is disconnected
+    expect(screen.getByText(/O Domínio de Âmbar:/i)).toBeInTheDocument();
+  });
+
+  it("allows 1-click federated sign-in with Google or GitHub", () => {
+    localStorage.clear();
+
+    render(
+      <MemoryRouter>
+        <WitcherRealmPage />
+      </MemoryRouter>
+    );
+
+    // Open AuthModal
+    fireEvent.click(screen.getByTitle(/Entrar ou Cadastrar Guardião/i));
+
+    // Click Google federated login
+    const googleBtn = screen.getByRole("button", { name: /Google/i });
+    fireEvent.click(googleBtn);
+
+    // User is logged in and redirected to Perfil
+    expect(screen.getAllByText(/Guardião Google/i).length).toBeGreaterThanOrEqual(2);
+  });
 });
 

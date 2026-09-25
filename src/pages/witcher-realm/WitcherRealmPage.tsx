@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router";
 import { Seo } from "../../components/layout/Seo.tsx";
 import {
@@ -14,6 +14,8 @@ import { OracleSimulado } from "./components/OracleSimulado";
 import { BoosterOpeningModal } from "./components/BoosterOpeningModal";
 import { TutorialModal } from "./components/TutorialModal";
 import { AuthModal } from "./components/AuthModal";
+import { EtherShop } from "./components/EtherShop";
+import { UserProfileView } from "./components/UserProfileView";
 import {
   loadPlayerState,
   savePlayerState,
@@ -24,7 +26,6 @@ import type { PlayerGameState } from "../../data/cloudwardens/types";
 export function WitcherRealmPage() {
   const [activeTab, setActiveTab] = useState<CloudwardensTab>("intro");
   const [playerState, setPlayerStateInternal] = useState<PlayerGameState>(loadPlayerState);
-  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Sincroniza e persiste alterações no localStorage
@@ -36,17 +37,9 @@ export function WitcherRealmPage() {
     });
   };
 
-  // Abre tutorial na primeira vez se não tiver sido concluído
-  useEffect(() => {
-    if (!playerState.isTutorialCompleted && playerState.unlockedCardIds.length <= STARTER_CARD_IDS.length) {
-      const timer = setTimeout(() => setIsTutorialOpen(true), 800);
-      return () => clearTimeout(timer);
-    }
-  }, [playerState.isTutorialCompleted, playerState.unlockedCardIds.length]);
-
   const handleCompleteTutorial = () => {
     if (playerState.isTutorialCompleted) {
-      setIsTutorialOpen(false);
+      setActiveTab("intro");
       return;
     }
     handleUpdatePlayerState((prev) => {
@@ -55,10 +48,20 @@ export function WitcherRealmPage() {
         ...prev,
         isTutorialCompleted: true,
         etherCurrency: prev.etherCurrency + 150,
+        unopenedPacks: [
+          ...prev.unopenedPacks,
+          {
+            id: `pack-welcome-guild-${Date.now()}`,
+            name: "Booster de Boas-Vindas da Guilda",
+            description: "Contém 3 cartas de guardiões ou anomalias com chances de itens raros.",
+            cardsCount: 3,
+            guaranteedRarity: "rare",
+          },
+        ],
         unlockedCardIds: Array.from(new Set([...prev.unlockedCardIds, ...STARTER_CARD_IDS])),
       };
     });
-    setIsTutorialOpen(false);
+    setActiveTab(playerState.user ? "profile" : "intro");
   };
 
   return (
@@ -74,10 +77,13 @@ export function WitcherRealmPage() {
       <CloudwardensHeader
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onOpenTutorial={() => setIsTutorialOpen(true)}
+        onOpenTutorial={() => setActiveTab("tutorial")}
         user={playerState.user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
-        onLogout={() => handleUpdatePlayerState((prev) => ({ ...prev, user: null }))}
+        onLogout={() => {
+          handleUpdatePlayerState((prev) => ({ ...prev, user: null }));
+          if (activeTab === "profile") setActiveTab("intro");
+        }}
         etherBalance={playerState.etherCurrency}
         unopenedPacksCount={playerState.unopenedPacks.length}
       />
@@ -88,8 +94,34 @@ export function WitcherRealmPage() {
           <GameIntroduction
             playerState={playerState}
             onNavigate={setActiveTab}
-            onOpenTutorial={() => setIsTutorialOpen(true)}
+            onOpenTutorial={() => setActiveTab("tutorial")}
             onOpenAuth={() => setIsAuthModalOpen(true)}
+          />
+        )}
+        {activeTab === "profile" && (
+          <UserProfileView
+            playerState={playerState}
+            onNavigate={setActiveTab}
+            onLogout={() => {
+              handleUpdatePlayerState((prev) => ({ ...prev, user: null }));
+              setActiveTab("intro");
+            }}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+          />
+        )}
+        {activeTab === "shop" && (
+          <EtherShop
+            playerState={playerState}
+            onUpdatePlayerState={handleUpdatePlayerState}
+            onNavigate={setActiveTab}
+          />
+        )}
+        {activeTab === "tutorial" && (
+          <TutorialModal
+            isOpen={true}
+            onClose={() => setActiveTab("intro")}
+            onCompleteTutorial={handleCompleteTutorial}
+            playerState={playerState}
           />
         )}
         {activeTab === "career" && (
@@ -122,14 +154,6 @@ export function WitcherRealmPage() {
         {activeTab === "oracle" && <OracleSimulado />}
       </main>
 
-      {/* Modal de Tutorial Interativo do Aprendiz */}
-      <TutorialModal
-        isOpen={isTutorialOpen}
-        onClose={() => setIsTutorialOpen(false)}
-        onCompleteTutorial={handleCompleteTutorial}
-        playerState={playerState}
-      />
-
       {/* Modal de Autenticação / Cadastro de Guardião */}
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -139,6 +163,7 @@ export function WitcherRealmPage() {
             ...prev,
             user,
           }));
+          setActiveTab("profile");
         }}
       />
 

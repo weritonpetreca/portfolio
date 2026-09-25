@@ -5,17 +5,13 @@ interface GameIntroductionProps {
   playerState: PlayerGameState;
   onNavigate: (tab: CloudwardensTab) => void;
   onOpenTutorial: () => void;
-  onOpenAuth: () => void;
+  onOpenAuth?: () => void;
 }
 
 export function GameIntroduction({
-  playerState,
   onNavigate,
   onOpenTutorial,
-  onOpenAuth,
 }: GameIntroductionProps) {
-  const unlockedCount = playerState.unlockedCardIds.length;
-  const unopenedPacksCount = playerState.unopenedPacks.length;
 
   return (
     <div className="space-y-12">
@@ -63,66 +59,7 @@ export function GameIntroduction({
         </div>
       </section>
 
-      {/* 2. PAINEL DE STATUS RÁPIDO DO JOGADOR */}
-      <section className="rounded-xl border border-forge-800 bg-black/60 p-5 sm:p-6 shadow-xl font-mono">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4 text-center md:text-left">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-amber-500/60 bg-amber-950/60 text-3xl shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-              {playerState.user?.faction === "silicon" ? "⚡" : playerState.user?.faction === "vortex" ? "🌀" : "🛡️"}
-            </div>
-            <div>
-              <span className="text-[11px] uppercase tracking-widest text-amber-400 font-bold">
-                {playerState.user ? "GUARDIÃO AUTENTICADO" : "MODO CONVIDADO (ANÔNIMO)"}
-              </span>
-              <h3 className="text-base sm:text-lg font-bold text-bone">
-                {playerState.user ? playerState.user.name : "Guardião Errante"}
-              </h3>
-              <p className="text-xs text-steel">
-                {playerState.user
-                  ? `${playerState.user.guardianTitle} · ${playerState.user.faction.toUpperCase()} · ${unlockedCount} cartas ativas`
-                  : `${unlockedCount} cartas ativas · Cadastre-se para sincronizar seu progresso nas nuvens`}
-              </p>
-            </div>
-          </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-bold">
-            <div className="flex items-center gap-2 rounded-lg border border-amber-600/40 bg-amber-950/40 px-3.5 py-2 text-amber-300">
-              <span>⚡</span>
-              <span>{playerState.etherCurrency} Éter</span>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-lg border border-purple-600/40 bg-purple-950/40 px-3.5 py-2 text-purple-300">
-              <span>📦</span>
-              <span>{unopenedPacksCount} {unopenedPacksCount === 1 ? "Pacote" : "Pacotes"}</span>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-lg border border-emerald-600/40 bg-emerald-950/40 px-3.5 py-2 text-emerald-300">
-              <span>🔥</span>
-              <span>Streak: {playerState.dailyStreak.currentStreakDays}d</span>
-            </div>
-
-            {unopenedPacksCount > 0 && (
-              <button
-                type="button"
-                onClick={() => onNavigate("boosters")}
-                className="cursor-pointer rounded-lg border border-amber-400 bg-amber-500 px-4 py-2 text-black hover:bg-amber-400 transition-colors animate-pulse"
-              >
-                Abrir Pacotes ➔
-              </button>
-            )}
-
-            {!playerState.user && (
-              <button
-                type="button"
-                onClick={onOpenAuth}
-                className="cursor-pointer rounded-lg border border-amber-500/80 bg-gradient-to-r from-amber-600 to-amber-500 px-4 py-2 text-black font-bold uppercase hover:from-amber-500 hover:to-amber-400 transition-all shadow-md"
-              >
-                🔑 Entrar / Cadastrar
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* 3. OS 5 PILARES DO CLOUDWARDENS (PORTAIS ESPECÍFICOS) */}
       <section className="space-y-6">
