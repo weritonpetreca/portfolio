@@ -13,7 +13,7 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     );
   });
 
-  it("renders Modo Carreira and Skill Tree by default", () => {
+  it("renders Game Introduction by default and can navigate to Modo Carreira", () => {
     render(
       <MemoryRouter>
         <WitcherRealmPage />
@@ -21,6 +21,14 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     );
 
     expect(screen.getAllByText(/CLOUDWARDENS/i)[0]).toBeInTheDocument();
+    expect(screen.getByText(/O Domínio de Âmbar:/i)).toBeInTheDocument();
+    expect(screen.getByText(/O que você encontrará no Cloudwardens/i)).toBeInTheDocument();
+
+    // Navigate to Career Mode
+    const nav = screen.getByRole("navigation");
+    const careerBtn = within(nav).getByRole("button", { name: /Carreira/i });
+    fireEvent.click(careerBtn);
+
     expect(screen.getByText(/Trilhas de Formação & Certificações/i)).toBeInTheDocument();
     expect(screen.getByText(/Rota de Progressão da Carreira/i)).toBeInTheDocument();
   });
@@ -49,8 +57,7 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
       </MemoryRouter>
     );
 
-    const nav = screen.getByRole("navigation");
-    const boostersBtn = within(nav).getByRole("button", { name: /Boosters/i });
+    const boostersBtn = screen.getAllByRole("button", { name: /Boosters/i })[0];
     fireEvent.click(boostersBtn);
 
     expect(screen.getByText(/DISCIPLINA DOS CLOUDWARDENS · STREAK DIÁRIO/i)).toBeInTheDocument();
@@ -117,14 +124,14 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     );
 
     // Initial ether is 50
-    expect(screen.getByText(/50 Éter/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/50 Éter/i).length).toBeGreaterThanOrEqual(1);
 
     // Open tutorial from header
-    const tutorialBtn = screen.getByRole("button", { name: /Tutorial/i });
+    const tutorialBtn = screen.getByTitle(/Abrir Tutorial do Aprendiz/i);
     fireEvent.click(tutorialBtn);
 
     // Modal is open
-    expect(screen.getByText(/GUIA DO APRENDIZ/i)).toBeInTheDocument();
+    expect(screen.getByText(/PASSO 1 DE 4/i)).toBeInTheDocument();
 
     // Advance step 1 -> step 2
     fireEvent.click(screen.getByRole("button", { name: /Aceitar a Convocação/i }));
@@ -142,6 +149,6 @@ describe("Cloudwardens (WitcherRealmPage)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Concluir Revisão/i }));
 
     // Ether balance should remain 50, not 200
-    expect(screen.getByText(/50 Éter/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/50 Éter/i).length).toBeGreaterThanOrEqual(1);
   });
 });

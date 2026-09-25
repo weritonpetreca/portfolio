@@ -5,6 +5,7 @@ import {
   CloudwardensHeader,
   type CloudwardensTab,
 } from "./components/CloudwardensHeader";
+import { GameIntroduction } from "./components/GameIntroduction";
 import { CareerMode } from "./components/CareerMode";
 import { DeckBuilder } from "./components/DeckBuilder";
 import { DeckShowcase } from "./components/DeckShowcase";
@@ -20,7 +21,7 @@ import {
 import type { PlayerGameState } from "../../data/cloudwardens/types";
 
 export function WitcherRealmPage() {
-  const [activeTab, setActiveTab] = useState<CloudwardensTab>("career");
+  const [activeTab, setActiveTab] = useState<CloudwardensTab>("intro");
   const [playerState, setPlayerStateInternal] = useState<PlayerGameState>(loadPlayerState);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
@@ -61,13 +62,13 @@ export function WitcherRealmPage() {
   return (
     <div className="min-h-screen bg-forge-950 text-bone selection:bg-amber-500/30 selection:text-amber-200">
       <Seo
-        title="Cloudwardens — Skill Builder & Jogo de Cartas de Nuvem AWS"
+        title="Cloudwardens — Jogo Tático e Simulador de Nuvem AWS"
         description="Aprenda arquitetura de nuvem AWS e estude para certificações com trilhas de carreira, deckbuilder tático, abertura de boosters e simulados interativos no universo Cloudwardens."
         path="/witcher-realm"
         favicon="/witcher-favicon.ico"
       />
 
-      {/* Header com Navegação e Recursos */}
+      {/* Header com Navegação e Recursos Despoluídos */}
       <CloudwardensHeader
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -76,43 +77,15 @@ export function WitcherRealmPage() {
         unopenedPacksCount={playerState.unopenedPacks.length}
       />
 
-      {/* Hero Banner Imersivo */}
-      <section className="relative overflow-hidden border-b border-forge-700/60 bg-gradient-to-b from-forge-900 via-forge-950 to-forge-950 py-10 px-4 sm:px-6">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.12),transparent_70%)] pointer-events-none" />
-        
-        <div className="relative mx-auto max-w-5xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-600/40 bg-amber-950/60 px-3.5 py-1 text-xs font-mono text-amber-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span>UNIVERSO ORIGINAL · APRENDIZADO GAMIFICADO DE CLOUD</span>
-          </div>
-
-          <h2 className="mt-4 font-display text-3xl sm:text-5xl font-bold tracking-tight text-bone">
-            O Domínio de Âmbar: <span className="text-forged-gold">Cloudwardens</span>
-          </h2>
-
-          <p className="mx-auto mt-3 max-w-2xl font-sans text-sm sm:text-base text-slate-300 leading-relaxed">
-            Evolua no <strong>Modo Carreira</strong> através de trilhas profundas por serviço, monte seu baralho no <strong>Deckbuilder</strong>, abra <strong>Boosters</strong> com cartas raras e domine as certificações da AWS com simulados comentados.
-          </p>
-
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 font-mono text-xs text-steel">
-            <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
-              🧭 Modo Carreira & Skill Tree
-            </span>
-            <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
-              🛠️ Deckbuilder com 3 Slots
-            </span>
-            <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
-              🎁 Boosters & Recompensas Diárias
-            </span>
-            <span className="rounded border border-forge-700 bg-forge-900/80 px-2.5 py-1">
-              ⚔️ Arena de Resolução de Incidentes
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Conteúdo Principal Dinâmico por Aba */}
+      {/* Conteúdo Principal Dinâmico por Página Dedicada */}
       <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
+        {activeTab === "intro" && (
+          <GameIntroduction
+            playerState={playerState}
+            onNavigate={setActiveTab}
+            onOpenTutorial={() => setIsTutorialOpen(true)}
+          />
+        )}
         {activeTab === "career" && (
           <CareerMode
             playerState={playerState}

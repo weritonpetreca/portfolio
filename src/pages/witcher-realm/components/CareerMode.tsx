@@ -153,7 +153,7 @@ export function CareerMode({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-amber-500 flex items-center gap-1.5">
-              <span>🧭</span> MODO CARREIRA · SKILL BUILDER
+              <span>🧭</span> MODO CARREIRA · TRILHAS DE PROGRESSÃO
             </span>
             <h3 className="mt-1 font-display text-xl sm:text-2xl font-bold text-bone">
               Trilhas de Formação & Certificações

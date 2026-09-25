@@ -65,7 +65,7 @@ export function Footer() {
                     PROJETO AUTORAL EM DESTAQUE
                   </span>
                   <span className="rounded border border-amber-600/40 bg-amber-950/80 px-1.5 py-0.2 text-[10px] text-amber-300 font-semibold">
-                    SKILL BUILDER + CARD GAME
+                    TCG DE ARQUITETURA + SIMULADOR CLOUD
                   </span>
                 </div>
                 <h4 className="mt-1 font-display text-lg sm:text-xl font-bold text-bone">

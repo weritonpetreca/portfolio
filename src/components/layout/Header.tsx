@@ -65,12 +65,12 @@ export function Header() {
           <Link
             to="/witcher-realm"
             className="flex items-center gap-1.5 rounded-full border border-amber-500/60 bg-gradient-to-r from-amber-950/80 via-forge-900 to-amber-950/80 px-2.5 py-1 text-xs text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)] transition-all duration-200 hover:border-amber-400 hover:scale-105 hover:text-amber-200 hover:shadow-[0_0_18px_rgba(245,158,11,0.45)]"
-            title="Conheça o Cloudwardens: Skill Builder & Jogo de Cartas AWS"
+            title="Conheça o Cloudwardens: Jogo Tático e Simulador de Nuvem AWS"
           >
             <span className="text-sm">☁️</span>
             <span className="tracking-wide">CLOUDWARDENS</span>
             <span className="hidden sm:inline rounded bg-amber-500/20 px-1 py-0.2 text-[10px] text-amber-400 font-bold">
-              GAME
+              TCG CLOUD
             </span>
           </Link>
         </nav>

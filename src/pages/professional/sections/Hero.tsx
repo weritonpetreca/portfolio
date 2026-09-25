@@ -177,29 +177,24 @@ export function Hero() {
             {/* Estrutura Única: Moldura Forjada com Cavidades de Gemas */}
             <div className="flex shrink-0 flex-col items-center self-center sm:self-start">
               
-              <div className="relative w-[216px] shrink-0 flex flex-col items-center rounded-xl border-2 border-amber-600/60 bg-gradient-to-b from-forge-900 via-forge-950 to-black p-3 shadow-[0_10px_30px_rgba(0,0,0,0.9),0_0_15px_rgba(210,69,31,0.2)]">
+              <div className="group/frame relative w-[275px] shrink-0 flex flex-col items-center rounded-xl border-2 border-amber-600/60 bg-gradient-to-b from-forge-900 via-forge-950 to-black p-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.9),0_0_15px_rgba(210,69,31,0.2)] transition-all duration-300 hover:border-amber-500/80 hover:shadow-[0_15px_35px_rgba(0,0,0,0.95),0_0_25px_rgba(245,158,11,0.25)]">
                 
-                {/* Foto Hexagonal Embutida com Borda de Ouro Forjado */}
-                <div
-                  className="relative flex shrink-0 items-center justify-center p-[2px] bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)] shadow-[0_0_15px_rgba(245,158,11,0.3)] select-none"
-                  style={{ willChange: "transform", transform: "translateZ(0)" }}
-                >
-                  <div className="h-44 w-40 shrink-0 overflow-hidden bg-forge-950 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)]">
+                {/* Foto Hexagonal Embutida com Efeito de Hover Próprio e Isolado */}
+                <div className="group/photo relative flex shrink-0 items-center justify-center p-[2.5px] bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)] shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(245,158,11,0.6)] cursor-pointer select-none">
+                  <div className="h-56 w-48 shrink-0 overflow-hidden bg-forge-950 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)]">
                     <img
                       src="/profile-photo.jpg"
                       alt="Weriton Luis Petreca"
-                      width={160}
-                      height={176}
-                      className="h-full w-full object-cover pointer-events-none select-none"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover/photo:scale-105 group-hover/photo:contrast-[1.03] select-none pointer-events-none"
                     />
                   </div>
                 </div>
 
                 {/* Divisor Metálico Interno da Moldura */}
-                <div className="my-2.5 h-[2px] w-full shrink-0 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
+                <div className="my-3 h-[2px] w-full shrink-0 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
 
-                {/* Cavidades/Soquetes Encravados (Insígnias de Poder) */}
-                <div className="w-full shrink-0 flex items-center justify-center gap-2 rounded-lg bg-black/80 p-2 shadow-[inset_0_3px_8px_rgba(0,0,0,0.95)] border border-forge-800/90">
+                {/* Cavidades/Soquetes Encravados (Insígnias de Poder Ampliadas) */}
+                <div className="w-full shrink-0 flex items-center justify-center gap-2.5 rounded-lg bg-black/85 p-2 shadow-[inset_0_3px_8px_rgba(0,0,0,0.95)] border border-forge-800/90">
                   {EQUIPPED_BADGES.map((badge) => {
                     const isHovered = hoveredBadge === badge.title;
                     return (
@@ -211,19 +206,17 @@ export function Hero() {
                         aria-label={`Ver credencial oficial: ${badge.title}`}
                         onMouseEnter={() => setHoveredBadge(badge.title)}
                         onMouseLeave={() => setHoveredBadge(null)}
-                        className={`relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-all duration-200 ${
+                        className={`group/badge relative flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-all duration-200 ${
                           isHovered
-                            ? "border-amber-400 bg-amber-950/50 shadow-[0_0_16px_rgba(245,158,11,0.6),inset_0_0_8px_rgba(245,158,11,0.25)]"
-                            : "border-forge-800 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] hover:border-amber-500/70"
+                            ? "border-amber-400 bg-amber-950/60 shadow-[0_0_18px_rgba(245,158,11,0.7),inset_0_0_10px_rgba(245,158,11,0.3)] -translate-y-0.5"
+                            : "border-forge-800 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] hover:border-amber-500/80 hover:bg-amber-950/30"
                         }`}
                       >
                         <img
                           src={badge.image}
                           alt={badge.title}
-                          width={30}
-                          height={30}
-                          className={`h-7.5 w-7.5 object-contain pointer-events-none select-none transition-transform duration-200 ${
-                            isHovered ? "scale-110 drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]" : "opacity-90"
+                          className={`h-9.5 w-9.5 object-contain pointer-events-none select-none transition-transform duration-200 ${
+                            isHovered ? "scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]" : "opacity-95"
                           }`}
                         />
                       </a>
@@ -231,31 +224,31 @@ export function Hero() {
                   })}
                 </div>
 
-                {/* Micro-painel de Insígnia Ativa com crossfade estável sem layout shift */}
-                <div className="relative mt-2 h-7 w-full shrink-0 flex items-center justify-center px-1 font-mono text-[10px]">
+                {/* Micro-painel de Insígnia Ativa com legibilidade ampliada e crossfade estável */}
+                <div className="relative mt-2.5 h-8 w-full shrink-0 flex items-center justify-center px-1 font-mono text-[11px] sm:text-xs">
                   {/* Estado Padrão */}
                   <div
-                    className={`absolute inset-0 flex items-center justify-center gap-1 text-steel/70 transition-opacity duration-200 ${
+                    className={`absolute inset-0 flex items-center justify-center gap-1.5 text-steel/80 transition-opacity duration-200 ${
                       hoveredBadge ? "opacity-0 pointer-events-none" : "opacity-100"
                     }`}
                   >
-                    <span>🛡️</span>
-                    <span className="tracking-wider uppercase font-semibold">
+                    <span className="text-amber-500/80">🛡️</span>
+                    <span className="tracking-wide uppercase font-semibold">
                       3 Certificações Oficiais
                     </span>
                   </div>
 
                   {/* Estado Hover com Título Ativo */}
                   <div
-                    className={`absolute inset-0 flex items-center justify-center gap-1 text-amber-300 font-bold transition-opacity duration-200 ${
+                    className={`absolute inset-0 flex items-center justify-center gap-1.5 text-amber-300 font-bold transition-opacity duration-200 ${
                       hoveredBadge ? "opacity-100" : "opacity-0 pointer-events-none"
                     }`}
                   >
                     <span className="text-amber-400">🏆</span>
-                    <span className="truncate max-w-[155px] text-center" title={hoveredBadge ?? ""}>
+                    <span className="truncate max-w-[210px] text-center" title={hoveredBadge ?? ""}>
                       {hoveredBadge}
                     </span>
-                    <span className="text-[9px] text-amber-400 shrink-0">↗</span>
+                    <span className="text-[10px] text-amber-400 shrink-0">↗</span>
                   </div>
                 </div>
 
