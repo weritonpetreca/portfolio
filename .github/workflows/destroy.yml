@@ -28,7 +28,11 @@ jobs:
 
       - name: Delete SAM Backend Stack (${{ inputs.environment }})
         run: |
-          STACK_NAME="portfolio-backend-contact-${{ inputs.environment }}"
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            STACK_NAME="portfolio-backend-contact"
+          else
+            STACK_NAME="portfolio-backend-contact-staging"
+          fi
           echo "Iniciando a destruição da stack $STACK_NAME..."
           aws cloudformation delete-stack \
             --stack-name "$STACK_NAME" \
