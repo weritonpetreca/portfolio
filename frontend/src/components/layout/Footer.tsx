@@ -1,0 +1,158 @@
+import { useState } from "react";
+import { PrivacyModal } from "../ui/PrivacyModal.tsx";
+import { getCloudwardensUrl, isCloudwardensEnabled } from "../../lib/config.ts";
+
+const currentYear = new Date().getFullYear();
+
+// Substitua pela URL exata do seu repositório no GitHub
+const PORTFOLIO_REPO_URL = "https://github.com/weritonpetreca/portfolio";
+
+export function Footer() {
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const cloudwardensEnabled = isCloudwardensEnabled();
+  const cloudwardensUrl = getCloudwardensUrl();
+  return (
+    <footer className="texture-forged border-t border-forge-700/80 bg-forge-950/90 px-6 py-12 sm:py-16">
+      <div className="mx-auto flex max-w-4xl flex-col gap-8 text-slate-300">
+        
+        {/* Linha Superior: Links Sociais Principais */}
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-mono text-sm sm:text-base font-bold">
+          <a
+            href="https://linkedin.com/in/weriton-petreca"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:text-sky-400 hover:shadow-[0_0_12px_rgba(56,189,248,0.3)]"
+          >
+            LinkedIn
+          </a>
+          <span className="text-forge-700/80 select-none">•</span>
+          <a
+            href="https://github.com/weritonpetreca"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:text-bone"
+          >
+            GitHub
+          </a>
+          <span className="text-forge-700/80 select-none">•</span>
+          <a
+            href="https://www.credly.com/users/weriton-luis-petreca"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:text-amber-400 hover:shadow-[0_0_12px_rgba(245,158,11,0.3)]"
+          >
+            Credly
+          </a>
+          <span className="text-forge-700/80 select-none">•</span>
+          <a
+            href="https://wa.me/5535997231989?text=Ol%C3%A1%20Weriton,%20vi%20seu%20portf%C3%B3lio!"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-all duration-200 hover:-translate-y-0.5 hover:text-emerald-400 hover:shadow-[0_0_12px_rgba(16,185,129,0.3)]"
+          >
+            WhatsApp
+          </a>
+        </div>
+
+        {/* Banner de Destaque Oficial: Cloudwardens */}
+        <div className="group relative overflow-hidden rounded-xl border border-amber-500/40 bg-linear-to-r from-forge-900 via-forge-950 to-amber-950/40 p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.8),0_0_20px_rgba(245,158,11,0.15)] font-mono backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-400/80 hover:shadow-[0_20px_45px_rgba(0,0,0,0.9),0_0_30px_rgba(245,158,11,0.35)]">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl transition-all duration-500 group-hover:scale-150 group-hover:bg-amber-500/20" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-amber-500/60 bg-amber-950/70 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:border-amber-400 group-hover:shadow-[0_0_25px_rgba(245,158,11,0.6)] overflow-hidden">
+                <img src="/images/cloudwardens/logo.jpg" alt="CloudWardens" className="h-full w-full object-cover" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs uppercase tracking-widest text-amber-400 font-bold transition-colors group-hover:text-amber-300">
+                    PROJETO AUTORAL EM DESTAQUE
+                  </span>
+                  <span className="rounded border border-amber-600/40 bg-amber-950/80 px-1.5 py-0.5 text-[10px] text-amber-300 font-semibold transition-colors group-hover:border-amber-500/80">
+                    TCG DE ARQUITETURA + SIMULADOR CLOUD
+                  </span>
+                </div>
+                <h4 className="mt-1 font-display text-lg sm:text-xl font-bold text-bone transition-colors group-hover:text-amber-200">
+                  Cloudwardens: O Domínio de Âmbar
+                </h4>
+                <p className="mt-1 font-sans text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+                  Aprenda arquitetura de nuvem AWS de forma gamificada com trilhas de carreira, simulados oficiais para certificações (CLF-C02), abertura de boosters e montagem de decks táticos.
+                </p>
+              </div>
+            </div>
+
+            {cloudwardensEnabled ? (
+              <a
+                href={cloudwardensUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="group/btn inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-amber-500/80 bg-linear-to-r from-amber-600 to-amber-500 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black shadow-lg transition-all duration-300 hover:from-amber-500 hover:to-amber-400 hover:shadow-[0_0_25px_rgba(245,158,11,0.6)] hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <span>Acessar Cloudwardens</span>
+                <span className="transition-transform duration-200 group-hover/btn:translate-x-1 group-hover:translate-x-1">➔</span>
+              </a>
+            ) : (
+              <div
+                aria-label="Cloudwardens em desenvolvimento"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-amber-500/40 bg-forge-900/90 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-amber-300/90 select-none"
+              >
+                <span>🚧 Em Desenvolvimento · Em Breve</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Linha Inferior: Direitos Autorais + Tech Stack + Código Fonte */}
+        <div className="flex flex-col gap-4 border-t border-forge-700/60 pt-6 sm:flex-row sm:items-center sm:justify-between font-mono text-xs sm:text-sm">
+          
+          <div className="flex flex-wrap items-center gap-2 text-slate-300">
+            <span className="font-semibold text-bone">© {currentYear} Weriton Petreca.</span>
+            <span className="hidden sm:inline text-forge-700/80">•</span>
+            <span className="text-slate-400">Forjado com React, Tailwind & AWS.</span>
+            <span className="hidden sm:inline text-forge-700/80">•</span>
+            
+            {/* Link direto para o repositório deste portfólio */}
+            <a
+              href={PORTFOLIO_REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="text-amber-400/90 underline decoration-amber-400/40 underline-offset-4 transition-colors hover:text-amber-300 hover:decoration-amber-300"
+            >
+              [Código-fonte ↗]
+            </a>
+            <span className="hidden sm:inline text-forge-700/80">•</span>
+            <button
+              type="button"
+              onClick={() => setIsPrivacyOpen(true)}
+              className="cursor-pointer text-slate-400 underline decoration-forge-700 underline-offset-4 transition-colors hover:text-amber-400 hover:decoration-amber-400"
+            >
+              Privacidade & LGPD
+            </button>
+          </div>
+
+          {cloudwardensEnabled && (
+            <a
+              href={cloudwardensUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="group inline-flex items-center gap-2 font-mono text-xs text-amber-400/90 transition-colors hover:text-amber-300"
+            >
+              <img src="/images/cloudwardens/logo.jpg" alt="CW" className="w-4 h-4 rounded shadow-[0_0_8px_rgba(56,189,248,0.3)] border border-sky-500/30 object-cover" />
+              <span className="underline decoration-amber-500/50 underline-offset-4 font-bold">
+                Explorar Cloudwardens
+              </span>
+              <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+            </a>
+          )}
+
+        </div>
+
+      </div>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
+    </footer>
+  );
+}

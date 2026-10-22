@@ -1,10 +1,12 @@
+import base64
 import json
+import logging
 import os
 import re
-import logging
 import time
 import urllib.parse
 import urllib.request
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -12,19 +14,23 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-ses_client = boto3.client('ses', region_name='us-east-1')
-VERIFIED_EMAIL_SENDER = os.environ.get('VERIFIED_EMAIL_SENDER', '')
-TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '').strip()
-TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+ses_client = boto3.client("ses", region_name=AWS_REGION)
+VERIFIED_EMAIL_SENDER = os.environ.get("VERIFIED_EMAIL_SENDER", "")
+TURNSTILE_VERIFY_URL = (
+    "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+)
 
 # RegEx para e-mail
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 # Limites rígidos de tamanho de campos (Proteção contra Memory DoS)
+MAX_PAYLOAD_BYTES = 10000  # Max 10KB
 MAX_NAME_LENGTH = 100
 MAX_EMAIL_LENGTH = 254
 MAX_MESSAGE_LENGTH = 3000
 MIN_FORM_FILL_TIME_MS = 2500  # Tempo mínimo humano para preenchimento (Anti-Bot Time Trap)
+
 
 def build_response(status_code: int, body: dict) -> dict:
     return {
@@ -34,30 +40,37 @@ def build_response(status_code: int, body: dict) -> dict:
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
         },
-        "body": json.dumps(body)
+        "body": json.dumps(body),
     }
+
 
 def sanitize_input(text: str) -> str:
     """Remove quebras de linha para evitar Email Header Injection."""
     return re.sub(r"[\r\n]", " ", text).strip()
 
+
 def get_client_ip(event: dict) -> str:
-    """Extrai o IP de origem do cliente de forma segura através do API Gateway."""
-    req_ctx = event.get("requestContext", {})
+    """Extrai o IP de origem do cliente através do cabeçalho Cloudflare ou API Gateway."""
+    headers = event.get("headers") or {}
+    for key, value in headers.items():
+        if key.lower() == "cf-connecting-ip" and value:
+            return value.strip()
+
+    req_ctx = event.get("requestContext") or {}
     # HTTP API v2 ($default format)
-    http_info = req_ctx.get("http", {})
+    http_info = req_ctx.get("http") or {}
     if "sourceIp" in http_info:
         return http_info["sourceIp"]
     # REST API v1
-    identity = req_ctx.get("identity", {})
+    identity = req_ctx.get("identity") or {}
     if "sourceIp" in identity:
         return identity["sourceIp"]
-    # Headers fallback (CloudFront / X-Forwarded-For)
-    headers = event.get("headers") or {}
+    # Headers fallback (X-Forwarded-For)
     for key, value in headers.items():
         if key.lower() == "x-forwarded-for" and value:
             return value.split(",")[0].strip()
     return ""
+
 
 def verify_turnstile(token: str, client_ip: str = "") -> bool:
     """
@@ -65,106 +78,178 @@ def verify_turnstile(token: str, client_ip: str = "") -> bool:
     Se TURNSTILE_SECRET_KEY não estiver configurada (ex: ambiente de testes/dev local),
     a validação é ignorada com log para manter portabilidade e facilidade de desenvolvimento.
     """
-    secret = os.environ.get('TURNSTILE_SECRET_KEY', '').strip()
+    secret = os.environ.get("TURNSTILE_SECRET_KEY", "").strip()
     if not secret:
-        logger.info("TURNSTILE_SECRET_KEY não configurada no ambiente. Validação ignorada.")
+        logger.info(
+            "TURNSTILE_SECRET_KEY não configurada no ambiente. Validação ignorada."
+        )
         return True
 
     if not token:
         logger.warning("Token do Cloudflare Turnstile ausente no payload.")
         return False
 
-    # Chaves de teste padronizadas da Cloudflare (Always Pass)
-    if token.startswith("test-") or secret.startswith("1x0000"):
+    # Chave secreta de teste oficial da Cloudflare (1x0000000000000000000000000000000AA)
+    if secret.startswith("1x0000"):
         return True
 
     try:
-        post_data = urllib.parse.urlencode({
-            "secret": secret,
-            "response": token,
-            "remoteip": client_ip or ""
-        }).encode("utf-8")
+        post_data = urllib.parse.urlencode(
+            {
+                "secret": secret,
+                "response": token,
+                "remoteip": client_ip or "",
+            }
+        ).encode("utf-8")
 
         req = urllib.request.Request(
             TURNSTILE_VERIFY_URL,
             data=post_data,
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
-                "User-Agent": "portfolio-contact-backend"
+                "User-Agent": "portfolio-contact-backend",
             },
-            method="POST"
+            method="POST",
         )
 
-        with urllib.request.urlopen(req, timeout=5) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:  # nosec B310
             if response.status == 200:
                 result = json.loads(response.read().decode("utf-8"))
-                success = result.get("success", False)
+                success = bool(result.get("success", False))
                 if not success:
-                    logger.warning("Cloudflare Turnstile rejeitou o token: %s", result.get("error-codes", []))
+                    logger.warning(
+                        "Cloudflare Turnstile rejeitou o token: %s",
+                        result.get("error-codes", []),
+                    )
                 return success
-            logger.error("Status inesperado retornado pela API Turnstile: %s", response.status)
+            logger.error(
+                "Status inesperado retornado pela API Turnstile: %s",
+                response.status,
+            )
             return False
     except Exception as err:
-        logger.error("Erro de comunicação com o endpoint de verificação do Turnstile: %s", str(err))
+        logger.error(
+            "Erro de comunicação com o endpoint de verificação do Turnstile: %s",
+            str(err),
+        )
         return False
 
+
 def lambda_handler(event: dict, context) -> dict:
-    request_id = getattr(context, 'aws_request_id', 'local-test')
-    logger.info("Iniciando processamento da requisição de contato. RequestId: %s", request_id)
+    request_id = getattr(context, "aws_request_id", "local-test")
+    logger.info(
+        "Iniciando processamento da requisição de contato. RequestId: %s",
+        request_id,
+    )
 
     try:
-        raw_body = event.get("body", "{}")
-        
-        # Proteção adicional contra payloads massivos no corpo
-        if len(raw_body) > 10000: # Max 10KB
-            logger.warning("Payload rejeitado: Tamanho total excede 10KB. RequestId: %s", request_id)
+        raw_body = event.get("body")
+        if raw_body is None:
+            raw_body = "{}"
+
+        if event.get("isBase64Encoded") and raw_body:
+            raw_body = base64.b64decode(raw_body).decode("utf-8")
+
+        # Proteção contra payloads massivos no corpo (em bytes UTF-8)
+        if len(raw_body.encode("utf-8")) > MAX_PAYLOAD_BYTES:
+            logger.warning(
+                "Payload rejeitado: Tamanho total excede 10KB. RequestId: %s",
+                request_id,
+            )
             return build_response(413, {"error": "Payload muito grande."})
 
         data = json.loads(raw_body) if raw_body else {}
+        if not isinstance(data, dict):
+            return build_response(400, {"error": "Payload JSON malformado."})
 
         # 1. Anti-Spam (Honeypot): Se o campo escondido vier preenchido por um bot, descarta silenciosamente
         if data.get("website_hp"):
             logger.info("Bot detectado via Honeypot. RequestId: %s", request_id)
-            return build_response(200, {"ok": True, "message": "Mensagem enviada com sucesso!"})
+            return build_response(
+                200, {"ok": True, "message": "Mensagem enviada com sucesso!"}
+            )
 
-        # 2. Anti-Spam (Time Trap): Se o formulário foi preenchido de forma inumana (< 2.5s), descarta silenciosamente
+        # 2. Anti-Spam (Time Trap): Se o formulário foi preenchido de forma inumana (< 2.5s), descarta silenciosamente.
+        # Nota: valores negativos (elapsed_ms < 0) ocorrem quando o relógio local do navegador do usuário
+        # está alguns segundos adiantado em relação ao UTC do servidor (Clock Skew) e NÃO devem descartar a mensagem.
         form_timestamp = data.get("form_timestamp")
         if form_timestamp is not None:
             try:
                 now_ms = int(time.time() * 1000)
                 elapsed_ms = now_ms - int(form_timestamp)
-                if elapsed_ms < MIN_FORM_FILL_TIME_MS or elapsed_ms < 0:
-                    logger.info("Bot detectado via Time-Trap (tempo de preenchimento: %dms). RequestId: %s", elapsed_ms, request_id)
-                    return build_response(200, {"ok": True, "message": "Mensagem enviada com sucesso!"})
+                if 0 <= elapsed_ms < MIN_FORM_FILL_TIME_MS:
+                    logger.info(
+                        "Bot detectado via Time-Trap (tempo de preenchimento: %dms). RequestId: %s",
+                        elapsed_ms,
+                        request_id,
+                    )
+                    return build_response(
+                        200,
+                        {
+                            "ok": True,
+                            "message": "Mensagem enviada com sucesso!",
+                        },
+                    )
             except (ValueError, TypeError):
-                pass
+                logger.warning(
+                    "form_timestamp inválido recebido. RequestId: %s",
+                    request_id,
+                )
 
         # 3. Anti-Bot (Cloudflare Turnstile): Valida o token de desafio se a secret estiver presente
-        secret = os.environ.get('TURNSTILE_SECRET_KEY', '').strip()
+        secret = os.environ.get("TURNSTILE_SECRET_KEY", "").strip()
         if secret:
             token = str(data.get("turnstile_token", "")).strip()
             client_ip = get_client_ip(event)
             if not verify_turnstile(token, client_ip):
-                logger.warning("Desafio do Turnstile não atendido. RequestId: %s", request_id)
-                return build_response(400, {"error": "Falha na validação de segurança (Turnstile). Por favor, recarregue e tente novamente."})
-        
+                logger.warning(
+                    "Desafio do Turnstile não atendido. RequestId: %s",
+                    request_id,
+                )
+                return build_response(
+                    400,
+                    {
+                        "error": "Falha na validação de segurança (Turnstile). Por favor, recarregue e tente novamente."
+                    },
+                )
+
         raw_name = str(data.get("name", "")).strip()
         raw_email = str(data.get("email", "")).strip()
         raw_message = str(data.get("message", "")).strip()
 
         # 1. Validação de Presença
         if not raw_name or not raw_email or not raw_message:
-            return build_response(400, {"error": "Todos os campos (nome, e-mail e mensagem) são obrigatórios."})
+            return build_response(
+                400,
+                {
+                    "error": "Todos os campos (nome, e-mail e mensagem) são obrigatórios."
+                },
+            )
 
         # 2. Validação de Tamanho dos Campos (Anti-DoS)
         if len(raw_name) > MAX_NAME_LENGTH:
-            return build_response(400, {"error": f"O nome não pode exceder {MAX_NAME_LENGTH} caracteres."})
-        
+            return build_response(
+                400,
+                {
+                    "error": f"O nome não pode exceder {MAX_NAME_LENGTH} caracteres."
+                },
+            )
+
         if len(raw_email) > MAX_EMAIL_LENGTH:
-            return build_response(400, {"error": f"O e-mail não pode exceder {MAX_EMAIL_LENGTH} caracteres."})
+            return build_response(
+                400,
+                {
+                    "error": f"O e-mail não pode exceder {MAX_EMAIL_LENGTH} caracteres."
+                },
+            )
 
         if len(raw_message) > MAX_MESSAGE_LENGTH:
-            return build_response(400, {"error": f"O campo mensagem não pode exceder {MAX_MESSAGE_LENGTH} caracteres."})
+            return build_response(
+                400,
+                {
+                    "error": f"O campo mensagem não pode exceder {MAX_MESSAGE_LENGTH} caracteres."
+                },
+            )
 
         # 3. Validação de Formato de E-mail
         if not EMAIL_REGEX.match(raw_email):
@@ -184,26 +269,41 @@ def lambda_handler(event: dict, context) -> dict:
             f"RequestId: {request_id}\n"
         )
 
+        sender = os.environ.get("VERIFIED_EMAIL_SENDER", VERIFIED_EMAIL_SENDER)
+
         # Disparo via SES
         ses_client.send_email(
-            Source=VERIFIED_EMAIL_SENDER,
-            Destination={'ToAddresses': [VERIFIED_EMAIL_SENDER]},
+            Source=sender,
+            Destination={"ToAddresses": [sender]},
             ReplyToAddresses=[clean_email],
             Message={
-                'Subject': {'Data': email_subject, 'Charset': 'UTF-8'},
-                'Body': {'Text': {'Data': email_body_text, 'Charset': 'UTF-8'}}
-            }
+                "Subject": {"Data": email_subject, "Charset": "UTF-8"},
+                "Body": {
+                    "Text": {"Data": email_body_text, "Charset": "UTF-8"}
+                },
+            },
         )
 
-        logger.info("E-mail disparado com sucesso via Amazon SES. RequestId: %s", request_id)
-        return build_response(200, {"ok": True, "message": "Mensagem enviada com sucesso!"})
+        logger.info(
+            "E-mail disparado com sucesso via Amazon SES. RequestId: %s",
+            request_id,
+        )
+        return build_response(
+            200, {"ok": True, "message": "Mensagem enviada com sucesso!"}
+        )
 
     except json.JSONDecodeError:
-        logger.error("Erro ao decodificar JSON do payload. RequestId: %s", request_id)
+        logger.error(
+            "Erro ao decodificar JSON do payload. RequestId: %s", request_id
+        )
         return build_response(400, {"error": "Payload JSON malformado."})
-    except ClientError as e:
-        logger.error(f"Erro SES. RequestId: %s, Error: %s", request_id, str(e))
+    except ClientError as err:
+        logger.error("Erro SES. RequestId: %s, Error: %s", request_id, str(err))
         return build_response(500, {"error": "Erro no serviço de e-mail."})
-    except Exception as e:
-        logger.error(f"Erro genérico. RequestId: %s, Error: %s", request_id, str(e))
+    except Exception as err:
+        logger.error(
+            "Erro genérico. RequestId: %s, Error: %s", request_id, str(err)
+        )
+        return build_response(500, {"error": "Erro interno no servidor."})
+
         return build_response(500, {"error": "Erro interno no servidor."})

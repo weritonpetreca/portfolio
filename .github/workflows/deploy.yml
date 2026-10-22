@@ -4,8 +4,17 @@ on:
   push:
     branches:
       - main
-      - refactor/nova-arquitetura
-  workflow_dispatch: {}
+      - staging
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment to deploy (staging or prod)"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - prod
 
 permissions:
   id-token: write # Necessário para autenticação OIDC (Zero Chaves Fixas)
@@ -17,9 +26,34 @@ jobs:
   # =================================================================
   deploy-bootstrap:
     runs-on: ubuntu-latest
+    outputs:
+      app_env: ${{ steps.resolve-env.outputs.app_env }}
+      github_env: ${{ steps.resolve-env.outputs.github_env }}
+      enable_cloudwardens: ${{ steps.resolve-env.outputs.enable_cloudwardens }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
+
+      - name: Resolve Target Environment & Feature Flags
+        id: resolve-env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            APP_ENV="${{ inputs.environment }}"
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            APP_ENV="prod"
+          else
+            APP_ENV="staging"
+          fi
+
+          if [ "$APP_ENV" = "prod" ]; then
+            echo "app_env=prod" >> "$GITHUB_OUTPUT"
+            echo "github_env=production" >> "$GITHUB_OUTPUT"
+            echo "enable_cloudwardens=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "app_env=staging" >> "$GITHUB_OUTPUT"
+            echo "github_env=staging" >> "$GITHUB_OUTPUT"
+            echo "enable_cloudwardens=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -41,6 +75,9 @@ jobs:
   deploy-backend:
     needs: deploy-bootstrap
     runs-on: ubuntu-latest
+    environment: ${{ needs.deploy-bootstrap.outputs.github_env }}
+    env:
+      APP_ENV: ${{ needs.deploy-bootstrap.outputs.app_env }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -50,13 +87,24 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run Backend Unit Tests (Pytest)
+      - name: Run Backend Security Scan, Linters & Unit Tests
+        working-directory: backend-contact
         run: |
-          cd backend-contact
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest pytest-mock boto3
-          pytest
+          pip install -r requirements.txt
+          pip install pytest pytest-mock bandit black flake8
+
+          echo "--- Code Formatting Check (Black) ---"
+          black --check .
+
+          echo "--- Linter Check (Flake8) ---"
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+          echo "--- Security Scan (Bandit) ---"
+          bandit -r src/ --severity-level high
+
+          echo "--- Unit Tests (Pytest) ---"
+          pytest -v
 
       - name: Install AWS SAM CLI
         uses: aws-actions/setup-sam@v2
@@ -74,18 +122,16 @@ jobs:
 
       - name: Clean up failed initial stack (ROLLBACK_COMPLETE)
         run: |
-          STACK_NAME="portfolio-backend-contact"
-          
-          # Consulta o status atual da stack no CloudFormation
+          STACK_NAME="portfolio-backend-contact-${APP_ENV}"
+
           STACK_STATUS=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
             --region us-east-1 \
             --query "Stacks[0].StackStatus" \
             --output text 2>/dev/null || echo "STACK_NOT_FOUND")
 
-          echo "Status atual da stack: $STACK_STATUS"
+          echo "Status atual da stack ($STACK_NAME): $STACK_STATUS"
 
-          # Se estiver presa em ROLLBACK_COMPLETE, deleta e aguarda finalizar
           if [ "$STACK_STATUS" = "ROLLBACK_COMPLETE" ]; then
             echo "Stack em estado irrecuperável (ROLLBACK_COMPLETE). Iniciando limpeza automática..."
             aws cloudformation delete-stack --stack-name "$STACK_NAME" --region us-east-1
@@ -94,21 +140,36 @@ jobs:
           fi
 
       - name: Build & Deploy Backend (AWS SAM)
+        working-directory: backend-contact
         run: |
-          cd backend-contact
+          ALLOWED_ORIGIN="${{ vars.ALLOWED_ORIGIN || 'https://weriton.dev' }}"
           sam build
           sam deploy \
             --config-file samconfig.toml \
+            --config-env "$APP_ENV" \
             --s3-bucket ${{ env.SAM_ARTIFACT_BUCKET }} \
-            --parameter-overrides VerifiedEmailSender="${{ secrets.VERIFIED_EMAIL_SENDER }}" TurnstileSecretKey="${{ secrets.TURNSTILE_SECRET_KEY }}" \
+            --parameter-overrides \
+              Environment="$APP_ENV" \
+              AllowedOrigin="$ALLOWED_ORIGIN" \
+              VerifiedEmailSender="${{ secrets.VERIFIED_EMAIL_SENDER }}" \
+              TurnstileSecretKey="${{ secrets.TURNSTILE_SECRET_KEY }}" \
             --no-fail-on-empty-changeset
 
   # =================================================================
   # JOB 3: Frontend Web (React + Vite + S3 + CloudFront)
   # =================================================================
   deploy-frontend:
-    needs: deploy-backend
+    needs:
+      - deploy-bootstrap
+      - deploy-backend
     runs-on: ubuntu-latest
+    environment: ${{ needs.deploy-bootstrap.outputs.github_env }}
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      APP_ENV: ${{ needs.deploy-bootstrap.outputs.app_env }}
+      VITE_ENABLE_CLOUDWARDENS: ${{ needs.deploy-bootstrap.outputs.enable_cloudwardens }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -118,6 +179,7 @@ jobs:
         with:
           node-version: 24
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -127,11 +189,15 @@ jobs:
 
       - name: Fetch Contact API URL from SSM Parameter Store
         run: |
-          API_URL=$(aws ssm get-parameter --name "/portfolio/contact/api_url" --query "Parameter.Value" --output text)
+          API_URL=$(aws ssm get-parameter --name "/portfolio/${APP_ENV}/contact/api_url" --query "Parameter.Value" --output text)
           echo "VITE_CONTACT_API_URL=$API_URL" >> $GITHUB_ENV
 
       - name: Install Dependencies
         run: npm ci
+
+      # DevSecOps / Quality Gate 0: Auditoria de Vulnerabilidades (NPM Audit)
+      - name: Run Dependency Audit (npm audit)
+        run: npm audit --omit=dev --audit-level=high
 
       # DevSecOps / Quality Gate 1: Análise Estática de Código (Oxlint)
       - name: Run Linter (Oxlint)
@@ -146,33 +212,44 @@ jobs:
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.TURNSTILE_SITE_KEY }}
         run: npm run build
 
-      # 1. Sincroniza apenas os pacotes compilados com HASH (dist/assets/*)
+      # 1. Sincroniza pacotes compilados com HASH (dist/assets/*) - Cache Imutável de 1 Ano
       - name: Deploy Hashed Assets to S3 (Immutable Cache)
         run: |
           aws s3 sync dist/assets/ s3://${{ secrets.AWS_S3_BUCKET_NAME }}/assets/ \
             --delete \
             --cache-control "public, max-age=31536000, immutable"
 
-      # 2. Sincroniza TUDO que veio da pasta public/ + index.html (excluindo a pasta assets/)
-      - name: Deploy Public Assets & Entrypoints to S3 (No Cache)
+      # 2. Sincroniza imagens e vídeos estáticos (dist/images/*) - Cache de 7 Dias com Revalidação em Background
+      - name: Deploy Static Media to S3 (7-Day Edge Cache)
+        run: |
+          aws s3 sync dist/images/ s3://${{ secrets.AWS_S3_BUCKET_NAME }}/images/ \
+            --delete \
+            --metadata-directive REPLACE \
+            --cache-control "public, max-age=604800, stale-while-revalidate=86400"
+
+      # 3. Sincroniza entrypoints da raiz (index.html, sitemap.xml, site.webmanifest, CV) - Revalidação Imediata
+      - name: Deploy Root Entrypoints to S3 (Must Revalidate)
         run: |
           aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }}/ \
             --exclude "assets/*" \
+            --exclude "images/*" \
             --delete \
             --metadata-directive REPLACE \
             --cache-control "public, max-age=0, must-revalidate"
 
-      # 3. Invalidação da CDN (AWS CloudFront)
+      # 4. Invalidação da CDN (AWS CloudFront)
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
+            --paths "/index.html" "/sitemap.xml" "/site.webmanifest"
 
-      # 4. Invalidação da Borda Proxy Externa (Cloudflare)
+      # 5. Invalidação da Borda Proxy Externa (Cloudflare - executa quando configurado no ambiente)
       - name: Purge Cloudflare Edge Cache
+        if: ${{ secrets.CLOUDFLARE_ZONE_ID != '' && secrets.CLOUDFLARE_API_TOKEN != '' }}
         run: |
-          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+          curl --fail --silent --show-error -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}'
