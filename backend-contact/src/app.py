@@ -305,5 +305,3 @@ def lambda_handler(event: dict, context) -> dict:
             "Erro genérico. RequestId: %s, Error: %s", request_id, str(err)
         )
         return build_response(500, {"error": "Erro interno no servidor."})
-
-        return build_response(500, {"error": "Erro interno no servidor."})
