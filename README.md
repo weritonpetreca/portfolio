@@ -30,7 +30,7 @@ Este repositório contém o código-fonte aberto do portfólio profissional de *
 
 O **weriton.dev** combina distribuição estática na borda com computação serverless sob demanda na AWS:
 
-![Arquitetura do Sistema - weriton.dev](./docs/img/architecture.png)
+![Arquitetura do Sistema - weriton.dev](./docs/img/architecture.png?v=2)
 
 ### ⚖️ Decisões de Arquitetura & Trade-offs (ADRs)
 
@@ -67,7 +67,7 @@ O **weriton.dev** combina distribuição estática na borda com computação ser
 
 A esteira de entrega contínua ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) é dividida em 3 jobs encadeados (`deploy-bootstrap` ➔ `deploy-backend` ➔ `deploy-frontend`) e suporta execução automática por branch (`main` e `staging`) ou disparo manual (`workflow_dispatch`):
 
-![Pipeline DevSecOps - GitHub Actions](./docs/img/pipeline.png)
+![Pipeline DevSecOps - GitHub Actions](./docs/img/pipeline.png?v=2)
 
 1. **`deploy-bootstrap`:** Resolve dinamicamente o ambiente alvo (`prod` na `main` com `VITE_ENABLE_CLOUDWARDENS=false`; `staging` com `VITE_ENABLE_CLOUDWARDENS=true`), autentica via AWS OIDC e garante a existência da stack de fundação (`portfolio-bootstrap`: Bucket S3 de artefatos com encriptação AES-256, bloqueio público e ciclo de vida FinOps de 7 dias).
 2. **`deploy-backend`:** Executa os *Quality Gates* de Python (**Flake8**, **Bandit SAST** e **Pytest**), compila o pacote serverless via `sam build` e implanta a stack CloudFormation correspondente (`portfolio-backend-contact` em Produção ou `portfolio-backend-contact-staging` em Homologação), exportando a URL do HTTP API no SSM Parameter Store.
