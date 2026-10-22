@@ -1,0 +1,355 @@
+import { useState, useRef, type MouseEvent } from "react";
+import { motion } from "motion/react";
+import { Button } from "../../../components/ui/Button.tsx";
+
+const EQUIPPED_BADGES = [
+  {
+    id: "clf-c02",
+    title: "AWS Cloud Practitioner",
+    href: "https://www.credly.com/badges/828afdfe-9acc-4bba-873a-0f37a13a0903/public_url",
+    isExternal: true,
+    image: "/badge-clf-c02.png",
+  },
+  {
+    id: "dva-c02",
+    title: "AWS Developer Associate",
+    href: "https://www.credly.com/badges/2b6490cc-6509-4987-916f-d7cab2c3a28f/public_url",
+    isExternal: true,
+    image: "/badge-dva-c02.png",
+  },
+  {
+    id: "c100-dev",
+    title: "MongoDB Associate Java Developer",
+    href: "https://www.credly.com/badges/979b45cc-ec00-4980-b7c1-4970bc846b36/public_url",
+    isExternal: true,
+    image: "/badge-c100-dev.png",
+  },
+] as const;
+
+const SOCIAL_LINKS = [
+  {
+    id: "linkedin",
+    label: "LinkedIn",
+    href: "https://linkedin.com/in/weriton-petreca",
+    isExternal: true,
+    hoverClass: "hover:border-sky-500 hover:text-sky-400 hover:shadow-[0_0_12px_rgba(56,189,248,0.3)]",
+    icon: (
+      <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+      </svg>
+    ),
+  },
+  {
+    id: "github",
+    label: "GitHub",
+    href: "https://github.com/weritonpetreca",
+    isExternal: true,
+    hoverClass: "hover:border-slate-300 hover:text-bone hover:shadow-[0_0_12px_rgba(241,245,249,0.2)]",
+    icon: (
+      <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "credly",
+    label: "Perfil Credly",
+    href: "https://www.credly.com/users/weriton-luis-petreca",
+    isExternal: true,
+    hoverClass: "hover:border-amber-500 hover:text-amber-400 hover:shadow-[0_0_12px_rgba(245,158,11,0.3)]",
+    icon: (
+      <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.8 14.3L12 14.2l-3.8 2.1.8-4.3-3.2-3 4.3-.6L12 4.5l1.9 3.9 4.3.6-3.2 3 .8 4.3z" />
+      </svg>
+    ),
+  },
+  {
+    id: "whatsapp",
+    label: "WhatsApp",
+    href: "https://wa.me/5535997231989?text=Ol%C3%A1%20Weriton,%20vi%20seu%20portf%C3%B3lio%20e%20gostaria%20de%20conversar!",
+    isExternal: true,
+    hoverClass: "hover:border-emerald-500 hover:text-emerald-400 hover:shadow-[0_0_12px_rgba(16,185,129,0.3)]",
+    icon: (
+      <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+      </svg>
+    ),
+  },
+  {
+    id: "email",
+    label: "Enviar e-mail",
+    href: "#contact",
+    isExternal: false,
+    hoverClass: "hover:border-ember hover:text-ember hover:shadow-[0_0_12px_rgba(234,88,12,0.3)]",
+    icon: (
+      <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+      </svg>
+    ),
+  },
+] as const;
+
+export function Hero() {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
+  const [tilt, setTilt] = useState({
+    rotateX: 0,
+    rotateY: 0,
+    glareX: 50,
+    glareY: 50,
+    isHovered: false,
+  });
+
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((centerY - y) / centerY) * 5;
+    const rotateY = ((x - centerX) / centerX) * 5;
+    const glareX = (x / rect.width) * 100;
+    const glareY = (y / rect.height) * 100;
+    setTilt({ rotateX, rotateY, glareX, glareY, isHovered: true });
+  };
+
+  const handleCardMouseLeave = () => {
+    setTilt({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50, isHovered: false });
+  };
+
+  const handleScrollToContact = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const contactSection = document.getElementById("contact");
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  return (
+    <section className="relative overflow-hidden px-6 py-20 lg:py-24">
+      {/* Fundo Parallax (scroll normal no mobile para evitar bug do iOS Safari) */}
+      <div className="absolute inset-0 z-0 bg-[url('/images/portfolio/portfolio_hero_bg.jpg')] bg-scroll md:bg-fixed bg-cover bg-center opacity-25 pointer-events-none" />
+      <div className="absolute inset-0 z-0 texture-forged opacity-30 pointer-events-none" />
+      <div className="absolute inset-0 z-0 bg-linear-to-b from-forge-950/40 via-forge-950/60 to-forge-950 pointer-events-none" />
+      {/* Brilho Volumétrico Quente de Forja Medieval */}
+      <div
+        className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 h-137.5 w-212.5 rounded-full glow-torch-ambient blur-3xl opacity-75"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto max-w-4xl z-10">
+
+        {/* Card de Ficha de Personagem / Bruxo da Nuvem com Efeito 3D Tilt */}
+        <motion.div
+          ref={cardRef}
+          onMouseMove={handleCardMouseMove}
+          onMouseLeave={handleCardMouseLeave}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            rotateX: tilt.rotateX,
+            rotateY: tilt.rotateY,
+          }}
+          transition={{
+            opacity: { duration: 0.7, ease: "easeOut" },
+            rotateX: { type: "spring", stiffness: 350, damping: 25 },
+            rotateY: { type: "spring", stiffness: 350, damping: 25 },
+          }}
+          style={{ transformStyle: "preserve-3d" }}
+          className="relative mb-12 rounded-xl border border-forge-700/90 bg-linear-to-b from-forge-900/95 via-forge-900/90 to-forge-950/95 p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_35px_rgba(210,69,31,0.12)] backdrop-blur-md overflow-hidden transition-colors hover:border-amber-600/50"
+        >
+          {/* Reflexo Dinâmico Metálico (Glare) que segue o mouse */}
+          {tilt.isHovered && (
+            <div
+              className="pointer-events-none absolute inset-0 z-30 opacity-40 transition-opacity duration-300"
+              style={{
+                background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(251, 191, 36, 0.2) 0%, transparent 65%)`,
+              }}
+            />
+          )}
+
+          {/* Marcas Rúnicas Decorativas nos Cantos da Placa */}
+          <span className="absolute top-2.5 left-3 font-mono text-[11px] text-amber-500/40 select-none">᛭</span>
+          <span className="absolute top-2.5 right-3 font-mono text-[11px] text-amber-500/40 select-none">᛭</span>
+          <span className="absolute bottom-2.5 left-3 font-mono text-[11px] text-amber-500/40 select-none">᛭</span>
+          <span className="absolute bottom-2.5 right-3 font-mono text-[11px] text-amber-500/40 select-none">᛭</span>
+
+          <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
+
+            {/* Estrutura Única: Moldura Forjada com Cavidades de Gemas */}
+            <div className="flex shrink-0 flex-col items-center self-center sm:self-start">
+
+              <div className="group/frame relative w-68.75 shrink-0 flex flex-col items-center rounded-xl border-2 border-amber-600/60 bg-linear-to-b from-forge-900 via-forge-950 to-black p-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.9),0_0_15px_rgba(210,69,31,0.2)] transition-all duration-300 hover:border-amber-500/80 hover:shadow-[0_15px_35px_rgba(0,0,0,0.95),0_0_25px_rgba(245,158,11,0.25)]">
+
+                {/* Foto Hexagonal Embutida com Efeito de Hover Próprio e Isolado */}
+                <div className="group/photo relative flex shrink-0 items-center justify-center p-0.5 bg-linear-to-b from-amber-400 via-amber-600 to-amber-800 clip-hexagon shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(245,158,11,0.6)] cursor-pointer select-none">
+                  <div className="h-56 w-48 shrink-0 overflow-hidden bg-forge-950 clip-hexagon">
+                    <img
+                      src="/profile-photo.jpg"
+                      alt="Weriton Luis Petreca"
+                      className="h-full w-full object-cover object-[54%_center] transition-transform duration-500 group-hover/photo:scale-105 group-hover/photo:contrast-103 select-none pointer-events-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Divisor Metálico Interno da Moldura */}
+                <div className="my-3 h-0.5 w-full shrink-0 bg-linear-to-r from-transparent via-amber-500/60 to-transparent" />
+
+                {/* Cavidades/Soquetes Encravados (Insígnias de Poder Ampliadas) */}
+                <div className="w-full shrink-0 flex items-center justify-center gap-2.5 rounded-lg bg-black/85 p-2 shadow-[inset_0_3px_8px_rgba(0,0,0,0.95)] border border-forge-800/90">
+                  {EQUIPPED_BADGES.map((badge) => {
+                    const isHovered = hoveredBadge === badge.title;
+                    return (
+                      <a
+                        key={badge.id}
+                        href={badge.href}
+                        target={badge.isExternal ? "_blank" : undefined}
+                        rel={badge.isExternal ? "noopener noreferrer" : undefined}
+                        aria-label={`Ver credencial oficial: ${badge.title}`}
+                        onMouseEnter={() => setHoveredBadge(badge.title)}
+                        onMouseLeave={() => setHoveredBadge(null)}
+                        onFocus={() => setHoveredBadge(badge.title)}
+                        onBlur={() => setHoveredBadge(null)}
+                        className={`group/badge relative flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-all duration-200 ${isHovered
+                          ? "border-amber-400 bg-amber-950/60 shadow-[0_0_18px_rgba(245,158,11,0.7),inset_0_0_10px_rgba(245,158,11,0.3)] -translate-y-0.5"
+                          : "border-forge-800 bg-forge-950/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] hover:border-amber-500/80 hover:bg-amber-950/30"
+                          }`}
+                      >
+                        <img
+                          src={badge.image}
+                          alt={badge.title}
+                          className={`h-9.5 w-9.5 object-contain pointer-events-none select-none transition-transform duration-200 ${isHovered ? "scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.7)]" : "opacity-95"
+                            }`}
+                        />
+                      </a>
+                    );
+                  })}
+                </div>
+
+                {/* Micro-painel de Insígnia Ativa com legibilidade ampliada e crossfade estável */}
+                <div className="relative mt-2.5 h-8 w-full shrink-0 flex items-center justify-center px-1 font-mono text-[11px] sm:text-xs">
+                  {/* Estado Padrão */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center gap-1.5 text-steel/80 transition-opacity duration-200 ${hoveredBadge ? "opacity-0 pointer-events-none" : "opacity-100"
+                      }`}
+                  >
+                    <span className="text-amber-500/80">🛡️</span>
+                    <span className="tracking-wide uppercase font-semibold">
+                      3 Certificações Oficiais
+                    </span>
+                  </div>
+
+                  {/* Estado Hover com Título Ativo */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center gap-1.5 text-amber-300 font-bold transition-opacity duration-200 ${hoveredBadge ? "opacity-100" : "opacity-0 pointer-events-none"
+                      }`}
+                  >
+                    <span className="text-amber-400">🏆</span>
+                    <span className="truncate max-w-52.5 text-center" title={hoveredBadge ?? ""}>
+                      {hoveredBadge}
+                    </span>
+                    <span className="text-[10px] text-amber-400 shrink-0">↗</span>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Lado Direito: Dados da Ficha + Redes Sociais */}
+            <div className="flex w-full flex-col justify-between gap-6 self-stretch">
+
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="font-mono text-[11px] font-bold tracking-[0.25em] text-ember uppercase flex items-center gap-1.5">
+                    <span>⚡</span> PERFIL DE ENGENHARIA · BACK-END & CLOUD
+                  </span>
+                </div>
+
+                <dl className="grid w-full grid-cols-[110px_1fr] gap-x-4 gap-y-3 font-mono text-sm sm:grid-cols-[120px_1fr]">
+                  <dt className="font-bold tracking-wider text-amber-500/90">NOME</dt>
+                  <dd className="font-semibold text-bone sm:text-base">Weriton Luis Petreca</dd>
+
+                  <dt className="font-bold tracking-wider text-amber-500/90">ESPECIALIDADE</dt>
+                  <dd className="font-semibold text-bone sm:text-base">Back-End Engineer · Cloud & Distributed Systems</dd>
+
+                  <dt className="font-bold tracking-wider text-amber-500/90">LOCALIZAÇÃO</dt>
+                  <dd className="font-semibold text-bone sm:text-base">Poços de Caldas, MG</dd>
+
+                  <dt className="font-bold tracking-wider text-amber-500/90">STATUS</dt>
+                  <dd className="font-semibold text-emerald-400 sm:text-base flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Disponível para Oportunidades & Projetos
+                  </dd>
+                </dl>
+              </div>
+
+              {/* Redes e Contato Alinhadas à Direita */}
+              <div className="flex flex-col items-end gap-2.5 border-t border-forge-700/60 pt-4">
+                <span className="font-mono text-xs font-bold tracking-widest uppercase text-steel/80 flex items-center gap-1.5">
+                  <span>📜</span> CONEXÕES & PERFIS
+                </span>
+
+                <div className="flex items-center gap-2.5">
+                  {SOCIAL_LINKS.map((social) => (
+                    <a
+                      key={social.id}
+                      href={social.href}
+                      target={social.isExternal ? "_blank" : undefined}
+                      rel={social.isExternal ? "noopener noreferrer" : undefined}
+                      onClick={!social.isExternal ? handleScrollToContact : undefined}
+                      title={social.label}
+                      className={`flex h-10 w-10 items-center justify-center rounded-md border border-forge-700 bg-forge-950/90 text-steel transition-all duration-300 hover:-translate-y-1 active:translate-y-0 ${social.hoverClass}`}
+                    >
+                      {social.icon}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </motion.div>
+
+        {/* Headline Principal com Gradiente Forjado */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl text-bone">
+            Construo sistemas resilientes e escaláveis para a nuvem
+            <span className="text-forged-ember block sm:inline">
+              {" "}— porque falhar não é uma opção.
+            </span>
+          </h1>
+
+          {/* Descrição */}
+          <p className="mt-6 max-w-3xl text-lg sm:text-xl leading-relaxed text-slate-300">
+            Engenheiro de Software Back-End com foco em arquiteturas distribuídas, microsserviços e nuvem AWS (3x certificado: AWS Developer Associate, AWS Cloud Practitioner e MongoDB Associate Java Developer). Experiência na construção de ecossistemas em Java, C#/.NET e Python, aplicando Clean Architecture, resiliência, concorrência e integração nativa com IA Generativa.
+          </p>
+
+          {/* Botões Principais com Efeito Forja / Brasa */}
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(210,69,31,0.5)] active:translate-y-0">
+              <Button href="#projetos" variant="primary">
+                <span>⚡</span> Ver projetos em destaque
+              </Button>
+            </div>
+
+            <div className="transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] active:translate-y-0">
+              <Button href="/cv-weriton-petreca.pdf" variant="secondary" download>
+                <span>📜</span> Baixar CV
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+      </div>
+    </section>
+  );
+}

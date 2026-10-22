@@ -1,8 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Backend Serverless com HTTP API, ARM64 Graviton2, SES e DevSecOps Estrito
+Description: Backend Serverless com HTTP API, ARM64 Graviton2, SES e DevSecOps Estrito (Multi-Environment)
 
 Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - staging
+      - prod
+    Description: Ambiente de deploy (staging ou prod)
+
+  AllowedOrigin:
+    Type: String
+    Default: "https://weriton.dev"
+    Description: Origem permitida no CORS para o ambiente alvo
+
   VerifiedEmailSender:
     Type: String
     Description: E-mail remetente/destinatário para o formulário (Injetado via GitHub Secrets no deploy)
@@ -14,12 +27,16 @@ Parameters:
     Description: Chave Secreta do Cloudflare Turnstile (Injetado via GitHub Secrets no deploy)
     NoEcho: true
 
+Conditions:
+  IsProd: !Equals [!Ref Environment, prod]
+
 Resources:
   # =================================================================
-  # 1. Recurso SES - Identidade de E-mail
+  # 1. Recurso SES - Identidade de E-mail (Singleton na conta AWS; gerenciado pela stack prod)
   # =================================================================
   ContactEmailIdentity:
     Type: AWS::SES::EmailIdentity
+    Condition: IsProd
     Properties:
       EmailIdentity: !Ref VerifiedEmailSender
 
@@ -32,7 +49,7 @@ Resources:
       StageName: $default
       CorsConfiguration:
         AllowOrigins:
-          - "https://weriton.dev"
+          - !Ref AllowedOrigin
           - "http://localhost:5173" # Permitido para testes locais
         AllowMethods:
           - POST
@@ -51,7 +68,10 @@ Resources:
   ContactEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: portfolio-contact-email-sender
+      FunctionName: !If
+        - IsProd
+        - portfolio-contact-email-sender
+        - !Sub "portfolio-contact-email-sender-${Environment}"
       CodeUri: src/
       Handler: app.lambda_handler
       Runtime: python3.12
@@ -62,6 +82,7 @@ Resources:
       Tracing: Active
       Environment:
         Variables:
+          ENVIRONMENT: !Ref Environment
           VERIFIED_EMAIL_SENDER: !Ref VerifiedEmailSender
           TURNSTILE_SECRET_KEY: !Ref TurnstileSecretKey
 
@@ -72,7 +93,7 @@ Resources:
               Action:
                 - ses:SendEmail
                 - ses:SendRawEmail
-              Resource: !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${ContactEmailIdentity}"
+              Resource: !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${VerifiedEmailSender}"
 
       Events:
         ApiEvent:
@@ -84,7 +105,7 @@ Resources:
 
       Tags:
         Project: Portfolio
-        Environment: Production
+        Environment: !Ref Environment
         ManagedBy: AWS-SAM
 
   # =================================================================
@@ -93,13 +114,16 @@ Resources:
   ContactApiUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /portfolio/contact/api_url
+      Name: !If
+        - IsProd
+        - /portfolio/contact/api_url
+        - !Sub "/portfolio/${Environment}/contact/api_url"
       Type: String
       Value: !Sub "https://${ContactHttpApi}.execute-api.${AWS::Region}.amazonaws.com/contact"
       Description: Endpoint HTTP API para o formulário de contato React consumir
       Tags:
         Project: Portfolio
-        Environment: Production
+        Environment: !Ref Environment
 
 Outputs:
   ContactApiUrl:

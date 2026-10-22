@@ -4,8 +4,10 @@ Description: Stack de Fundação/Bootstrap - Bucket de Artefatos do SAM e Recurs
 Parameters:
   Environment:
     Type: String
-    Default: Production
+    Default: prod
     AllowedValues:
+      - prod
+      - staging
       - Production
       - Staging
 

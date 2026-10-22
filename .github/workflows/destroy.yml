@@ -1,7 +1,16 @@
 name: Destroy Portfolio Infrastructure
 
 on:
-  workflow_dispatch: {} # Permite acionamento manual na aba Actions
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment stack to destroy (staging or prod)"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - prod
 
 permissions:
   id-token: write
@@ -17,14 +26,15 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Delete SAM Backend Stack
+      - name: Delete SAM Backend Stack (${{ inputs.environment }})
         run: |
-          echo "Iniciando a destruição da stack do backend..."
+          STACK_NAME="portfolio-backend-contact-${{ inputs.environment }}"
+          echo "Iniciando a destruição da stack $STACK_NAME..."
           aws cloudformation delete-stack \
-            --stack-name portfolio-backend-contact \
+            --stack-name "$STACK_NAME" \
             --region us-east-1
-          
+
           aws cloudformation wait stack-delete-complete \
-            --stack-name portfolio-backend-contact \
+            --stack-name "$STACK_NAME" \
             --region us-east-1
-          echo "Stack do backend destruída com sucesso!"
+          echo "Stack $STACK_NAME destruída com sucesso!"
