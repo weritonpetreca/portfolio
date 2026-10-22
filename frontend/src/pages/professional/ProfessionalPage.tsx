@@ -2,6 +2,7 @@ import { Seo } from "../../components/layout/Seo.tsx";
 import { Header } from "../../components/layout/Header.tsx";
 import { Footer } from "../../components/layout/Footer.tsx";
 import { EmbersCanvas } from "../../components/ui/EmbersCanvas.tsx";
+import { BackToTopButton } from "../../components/ui/BackToTopButton.tsx";
 import { Hero } from "./sections/Hero.tsx";
 import { About } from "./sections/About.tsx";
 import { Skills } from "./sections/Skills.tsx";
@@ -37,6 +38,7 @@ export function ProfessionalPage() {
         <Contact />
       </main>
       <Footer />
+      <BackToTopButton />
     </>
   );
 }

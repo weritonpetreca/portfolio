@@ -1,25 +1,65 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { getCloudwardensUrl, isCloudwardensEnabled } from "../../lib/config.ts";
 
 const NAV_ITEMS = [
-  { label: "Sobre", href: "#sobre" },
-  { label: "Habilidades", href: "#habilidades" },
-  { label: "Projetos", href: "#projetos" },
-  { label: "Experiência", href: "#experiencia" },
-  { label: "Formação", href: "#formacao" },
-  { label: "Competências", href: "#competencias" },
-  { label: "Contato", href: "#contact" },
+  { label: "Sobre", href: "#sobre", id: "sobre" },
+  { label: "Habilidades", href: "#habilidades", id: "habilidades" },
+  { label: "Projetos", href: "#projetos", id: "projetos" },
+  { label: "Experiência", href: "#experiencia", id: "experiencia" },
+  { label: "Formação", href: "#formacao", id: "formacao" },
+  { label: "Competências", href: "#competencias", id: "competencias" },
+  { label: "Contato", href: "#contact", id: "contact" },
 ] as const;
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
   const cloudwardensEnabled = isCloudwardensEnabled();
+
+  useEffect(() => {
+    const handleScrollSpy = () => {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+      if (docHeight > 0) {
+        setScrollProgress(
+          Math.min(100, Math.max(0, (scrollTop / docHeight) * 100)),
+        );
+      } else {
+        setScrollProgress(0);
+      }
+
+      if (scrollTop < 220) {
+        setActiveSection("");
+        return;
+      }
+
+      let currentId = "";
+      for (const item of NAV_ITEMS) {
+        const el = document.getElementById(item.id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 180) {
+            currentId = item.id;
+          }
+        }
+      }
+      setActiveSection(currentId);
+    };
+
+    handleScrollSpy();
+    window.addEventListener("scroll", handleScrollSpy, { passive: true });
+    return () => window.removeEventListener("scroll", handleScrollSpy);
+  }, []);
 
   const handleScroll = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
     const targetId = href.replace("#", "");
     if (!targetId) {
+      setActiveSection("");
       window.history.replaceState(null, "", window.location.pathname);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -27,6 +67,7 @@ export function Header() {
 
     const targetElement = document.getElementById(targetId);
     if (targetElement) {
+      setActiveSection(targetId);
       window.history.replaceState(null, "", href);
       targetElement.scrollIntoView({ behavior: "smooth" });
     }
@@ -53,20 +94,46 @@ export function Header() {
 
         {/* Menu de Navegação Rápida + Destaque Cloudwardens */}
         <nav aria-label="Navegação principal" className="flex items-center gap-2.5 sm:gap-4 font-mono text-xs font-bold uppercase tracking-wider text-steel">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              onClick={(e) => handleScroll(e, item.href)}
-              className={`transition-all duration-200 hover:-translate-y-0.5 hover:text-amber-400 ${
-                item.label === "Contato"
-                  ? "rounded-md border border-amber-600/50 bg-forge-900/90 px-3 py-1.5 text-amber-400 hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_12px_rgba(245,158,11,0.2)]"
-                  : "hidden lg:inline-block"
-              }`}
-            >
-              {item.label}
-            </a>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const isActive = activeSection === item.id;
+            if (item.label === "Contato") {
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => handleScroll(e, item.href)}
+                  aria-current={isActive ? "location" : undefined}
+                  className={`rounded-md border px-3 py-1.5 transition-all duration-200 hover:-translate-y-0.5 ${
+                    isActive
+                      ? "border-amber-400 bg-amber-500/20 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.35)]"
+                      : "border-amber-600/50 bg-forge-900/90 text-amber-400 hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              );
+            }
+
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={(e) => handleScroll(e, item.href)}
+                aria-current={isActive ? "location" : undefined}
+                className={`relative hidden lg:inline-block py-1 transition-all duration-200 hover:-translate-y-0.5 hover:text-amber-400 ${
+                  isActive ? "text-amber-400" : "text-steel"
+                }`}
+              >
+                {item.label}
+                {isActive && (
+                  <span
+                    className="pointer-events-none absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-linear-to-r from-ember to-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"
+                    aria-hidden="true"
+                  />
+                )}
+              </a>
+            );
+          })}
 
           {/* Destaque Cloudwardens no Topo (Apenas quando Feature Flag ativa) */}
           {cloudwardensEnabled && (
@@ -102,19 +169,35 @@ export function Header() {
       {isMobileMenuOpen && (
         <div className="border-t border-forge-700/80 bg-forge-950/95 px-4 py-3 lg:hidden">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider">
-            {NAV_ITEMS.filter((item) => item.label !== "Contato").map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={(e) => handleScroll(e, item.href)}
-                className="rounded-md border border-forge-700/80 bg-forge-900/80 px-3 py-2 text-steel transition-colors hover:border-amber-400 hover:text-amber-400"
-              >
-                {item.label}
-              </a>
-            ))}
+            {NAV_ITEMS.filter((item) => item.label !== "Contato").map((item) => {
+              const isActive = activeSection === item.id;
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => handleScroll(e, item.href)}
+                  aria-current={isActive ? "location" : undefined}
+                  className={`rounded-md border px-3 py-2 transition-colors ${
+                    isActive
+                      ? "border-amber-400/80 bg-amber-500/15 text-amber-300"
+                      : "border-forge-700/80 bg-forge-900/80 text-steel hover:border-amber-400 hover:text-amber-400"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
           </div>
         </div>
       )}
+
+      {/* Barra de Progresso de Leitura da Forja (2px no limite inferior do Header) */}
+      <div className="pointer-events-none h-0.5 w-full bg-transparent overflow-hidden" aria-hidden="true">
+        <div
+          className="h-full bg-linear-to-r from-ember via-amber-500 to-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.8)] transition-[width] duration-150 ease-out"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
     </header>
   );
 }
