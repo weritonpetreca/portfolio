@@ -9,12 +9,12 @@ Parameters:
     AllowedValues:
       - staging
       - prod
-    Description: Ambiente de implantação (staging ou prod) para isolamento de recursos
+    Description: Ambiente de deploy (staging ou prod)
 
   AllowedOrigin:
     Type: String
     Default: "https://weriton.dev"
-    Description: Domínio autorizado na política de CORS do API Gateway
+    Description: Origem permitida no CORS para o ambiente alvo
 
   VerifiedEmailSender:
     Type: String
@@ -27,12 +27,16 @@ Parameters:
     Description: Chave Secreta do Cloudflare Turnstile (Injetado via GitHub Secrets no deploy)
     NoEcho: true
 
+Conditions:
+  IsProd: !Equals [!Ref Environment, prod]
+
 Resources:
   # =================================================================
-  # 1. Recurso SES - Identidade de E-mail
+  # 1. Recurso SES - Identidade de E-mail (Singleton na conta AWS; gerenciado pela stack prod)
   # =================================================================
   ContactEmailIdentity:
     Type: AWS::SES::EmailIdentity
+    Condition: IsProd
     Properties:
       EmailIdentity: !Ref VerifiedEmailSender
 
@@ -64,7 +68,10 @@ Resources:
   ContactEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "portfolio-contact-email-sender-${Environment}"
+      FunctionName: !If
+        - IsProd
+        - portfolio-contact-email-sender
+        - !Sub "portfolio-contact-email-sender-${Environment}"
       CodeUri: src/
       Handler: app.lambda_handler
       Runtime: python3.12
@@ -85,7 +92,8 @@ Resources:
             - Effect: Allow
               Action:
                 - ses:SendEmail
-              Resource: !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${ContactEmailIdentity}"
+                - ses:SendRawEmail
+              Resource: !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${VerifiedEmailSender}"
 
       Events:
         ApiEvent:
@@ -106,14 +114,16 @@ Resources:
   ContactApiUrlParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/portfolio/${Environment}/contact/api_url"
+      Name: !If
+        - IsProd
+        - /portfolio/contact/api_url
+        - !Sub "/portfolio/${Environment}/contact/api_url"
       Type: String
       Value: !Sub "https://${ContactHttpApi}.execute-api.${AWS::Region}.amazonaws.com/contact"
       Description: Endpoint HTTP API para o formulário de contato React consumir
       Tags:
         Project: Portfolio
         Environment: !Ref Environment
-        ManagedBy: AWS-SAM
 
 Outputs:
   ContactApiUrl:

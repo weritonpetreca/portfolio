@@ -1,14 +1,14 @@
 version = 0.1
 
 [default.deploy.parameters]
-stack_name = "portfolio-backend-contact-prod"
-s3_prefix = "contact-email-prod"
+stack_name = "portfolio-backend-contact"
+s3_prefix = "contact-email"
 region = "us-east-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 disable_rollback = false
 image_repositories = []
-tags = "Project=\"Portfolio\" Environment=\"prod\" ManagedBy=\"AWS-SAM\" Owner=\"WeritonPetreca\""
+tags = "Project=\"Portfolio\" Environment=\"Production\" ManagedBy=\"AWS-SAM\" Owner=\"WeritonPetreca\""
 
 [staging.deploy.parameters]
 stack_name = "portfolio-backend-contact-staging"
@@ -18,14 +18,14 @@ confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 disable_rollback = false
 image_repositories = []
-tags = "Project=\"Portfolio\" Environment=\"staging\" ManagedBy=\"AWS-SAM\" Owner=\"WeritonPetreca\""
+tags = "Project=\"Portfolio\" Environment=\"Staging\" ManagedBy=\"AWS-SAM\" Owner=\"WeritonPetreca\""
 
 [prod.deploy.parameters]
-stack_name = "portfolio-backend-contact-prod"
-s3_prefix = "contact-email-prod"
+stack_name = "portfolio-backend-contact"
+s3_prefix = "contact-email"
 region = "us-east-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 disable_rollback = false
 image_repositories = []
-tags = "Project=\"Portfolio\" Environment=\"prod\" ManagedBy=\"AWS-SAM\" Owner=\"WeritonPetreca\""
+tags = "Project=\"Portfolio\" Environment=\"Production\" ManagedBy=\"AWS-SAM\" Owner=\"WeritonPetreca\""

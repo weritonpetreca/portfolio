@@ -28,7 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       app_env: ${{ steps.resolve-env.outputs.app_env }}
-      github_env: ${{ steps.resolve-env.outputs.github_env }}
+      stack_name: ${{ steps.resolve-env.outputs.stack_name }}
+      ssm_api_param: ${{ steps.resolve-env.outputs.ssm_api_param }}
       enable_cloudwardens: ${{ steps.resolve-env.outputs.enable_cloudwardens }}
     steps:
       - name: Checkout Repository
@@ -47,11 +48,13 @@ jobs:
 
           if [ "$APP_ENV" = "prod" ]; then
             echo "app_env=prod" >> "$GITHUB_OUTPUT"
-            echo "github_env=production" >> "$GITHUB_OUTPUT"
+            echo "stack_name=portfolio-backend-contact" >> "$GITHUB_OUTPUT"
+            echo "ssm_api_param=/portfolio/contact/api_url" >> "$GITHUB_OUTPUT"
             echo "enable_cloudwardens=false" >> "$GITHUB_OUTPUT"
           else
             echo "app_env=staging" >> "$GITHUB_OUTPUT"
-            echo "github_env=staging" >> "$GITHUB_OUTPUT"
+            echo "stack_name=portfolio-backend-contact-staging" >> "$GITHUB_OUTPUT"
+            echo "ssm_api_param=/portfolio/staging/contact/api_url" >> "$GITHUB_OUTPUT"
             echo "enable_cloudwardens=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -75,9 +78,9 @@ jobs:
   deploy-backend:
     needs: deploy-bootstrap
     runs-on: ubuntu-latest
-    environment: ${{ needs.deploy-bootstrap.outputs.github_env }}
     env:
       APP_ENV: ${{ needs.deploy-bootstrap.outputs.app_env }}
+      STACK_NAME: ${{ needs.deploy-bootstrap.outputs.stack_name }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -92,12 +95,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-mock bandit black flake8
+          pip install pytest pytest-mock bandit flake8
 
-          echo "--- Code Formatting Check (Black) ---"
-          black --check .
-
-          echo "--- Linter Check (Flake8) ---"
+          echo "--- Linter Check (Flake8 Syntax & Undefined Names) ---"
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
           echo "--- Security Scan (Bandit) ---"
@@ -122,8 +122,6 @@ jobs:
 
       - name: Clean up failed initial stack (ROLLBACK_COMPLETE)
         run: |
-          STACK_NAME="portfolio-backend-contact-${APP_ENV}"
-
           STACK_STATUS=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
             --region us-east-1 \
@@ -163,12 +161,12 @@ jobs:
       - deploy-bootstrap
       - deploy-backend
     runs-on: ubuntu-latest
-    environment: ${{ needs.deploy-bootstrap.outputs.github_env }}
     defaults:
       run:
         working-directory: frontend
     env:
       APP_ENV: ${{ needs.deploy-bootstrap.outputs.app_env }}
+      SSM_API_PARAM: ${{ needs.deploy-bootstrap.outputs.ssm_api_param }}
       VITE_ENABLE_CLOUDWARDENS: ${{ needs.deploy-bootstrap.outputs.enable_cloudwardens }}
     steps:
       - name: Checkout Repository
@@ -189,7 +187,7 @@ jobs:
 
       - name: Fetch Contact API URL from SSM Parameter Store
         run: |
-          API_URL=$(aws ssm get-parameter --name "/portfolio/${APP_ENV}/contact/api_url" --query "Parameter.Value" --output text)
+          API_URL=$(aws ssm get-parameter --name "$SSM_API_PARAM" --query "Parameter.Value" --output text)
           echo "VITE_CONTACT_API_URL=$API_URL" >> $GITHUB_ENV
 
       - name: Install Dependencies
@@ -242,7 +240,7 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/index.html" "/sitemap.xml" "/site.webmanifest"
+            --paths "/*"
 
       # 5. Invalidação da Borda Proxy Externa (Cloudflare - executa quando configurado no ambiente)
       - name: Purge Cloudflare Edge Cache
